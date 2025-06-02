@@ -1,0 +1,22 @@
+{
+  "package_1": {
+    "name": "Premium",
+    "price": "50",
+    "coins": "1000"
+  },
+  "package_2": {
+    "name": "Gold",
+    "price": "100",
+    "coins": "2500"
+  },
+  "package_3": {
+    "name": "Diamond",
+    "price": "150",
+    "coins": "5000"
+  },
+  "package_4": {
+    "name": "Platinum",
+    "price": "200",
+    "coins": "10000"
+  }
+}

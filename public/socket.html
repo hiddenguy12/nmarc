@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FriendsBook Chat Socket Tester</title>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <style>
+        /* Modern UI styles */
+        :root {
+            --primary-color: #4a90e2;
+            --error-color: #e74c3c;
+            --success-color: #2ecc71;
+            --warning-color: #f1c40f;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .connection-status {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .connection-status.connected {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .connection-status.disconnected {
+            background-color: var(--error-color);
+            color: white;
+        }
+
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .room-panel {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .event-log {
+            height: 500px;
+            overflow-y: auto;
+            background: #1e1e1e;
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Monaco', monospace;
+        }
+
+        .event-item {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            background: #2d2d2d;
+        }
+
+        .event-timestamp {
+            color: #666;
+            font-size: 0.8em;
+        }
+
+        .event-name {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .event-data {
+            color: #83c9f4;
+            margin-top: 5px;
+            white-space: pre-wrap;
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        button.danger {
+            background: var(--error-color);
+        }
+
+        .room-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FriendsBook Chat Socket Tester</h1>
+            <div id="connectionStatus" class="connection-status disconnected">Disconnected</div>
+        </div>
+
+        <div class="control-panel">
+            <button onclick="authenticate()">Authenticate</button>
+            <button onclick="initializeMessage()">Initialize Chat</button>
+            <button onclick="openNewRoom()">Open New Room</button>
+            <button onclick="sendMessage()">Send Message</button>
+            <button onclick="simulateTyping()">Simulate Typing</button>
+            <button onclick="clearLog()" class="danger">Clear Log</button>
+        </div>
+
+        <div class="room-panel">
+            <h3>Active Rooms</h3>
+            <div id="activeRooms"></div>
+        </div>
+
+        <div class="event-log" id="eventLog"></div>
+    </div>
+
+    <script>
+        let socket;
+        let currentRoom = null;
+        const activeRooms = new Map();
+
+        // Initialize socket with stored credentials or prompt for new ones
+        function authenticate() {
+            const token = prompt('Enter auth token:') || localStorage.getItem('authToken');
+            const profileType = prompt('Enter profile type (matrimony_members/video_calling_members):') || localStorage.getItem('profileType');
+
+            if (token && profileType) {
+                localStorage.setItem('authToken', token);
+                localStorage.setItem('profileType', profileType);
+                
+                initializeSocket(token, profileType);
+            }
+        }
+
+        function initializeSocket(token, profileType) {
+            if (socket) {
+                socket.disconnect();
+            }
+
+            let authHeader =  `${profileType}:${token}` ;
+            console.log(authHeader);
+            
+            socket = io('/socket/chat-messaging', {
+                extraHeaders: {
+                    'Authorization':authHeader
+                }
+            });
+
+            setupSocketListeners();
+        }
+
+        function setupSocketListeners() {
+            // Connection events
+            socket.on('connect', () => {
+                updateConnectionStatus(true);
+                logEvent('Connected to server', { socketId: socket.id });
+            });
+
+            socket.on('disconnect', () => {
+                updateConnectionStatus(false);
+                logEvent('Disconnected from server');
+            });
+
+            // Chat initialization
+            socket.on('client:message-initialization-completed', (rooms) => {
+                logEvent('Rooms initialized', rooms);
+                updateActiveRooms(rooms);
+            });
+
+            // Room events
+            socket.on('client:messaging-room-opened', (data) => {
+                logEvent('Room opened', data);
+                currentRoom = data.roomId;
+                activeRooms.set(data.roomId, data.otherUser);
+                updateActiveRooms();
+            });
+
+            // Message events
+            socket.on('client:unseen-message', (data) => {
+                logEvent('New message received', data);
+            });
+
+            socket.on('client:message-send-successful', (data) => {
+                logEvent('Message sent successfully', data);
+            });
+
+            // Typing events
+            socket.on('client:user-typing', (data) => {
+                logEvent('User typing', data);
+            });
+
+            socket.on('client:user-stopped-typing', (data) => {
+                logEvent('User stopped typing', data);
+            });
+
+            // Error events
+            socket.on('client:initialize-message-error', (error) => {
+                logEvent('Initialization error', error, true);
+            });
+
+            socket.on('client:message-room-opening-error', (error) => {
+                logEvent('Room opening error', error, true);
+            });
+
+            socket.on('client:sent-message-failed', (error) => {
+                logEvent('Message sending failed', error, true);
+            });
+        }
+
+        // UI Updates
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById('connectionStatus');
+            statusElement.textContent = connected ? 'Connected' : 'Disconnected';
+            statusElement.className = `connection-status ${connected ? 'connected' : 'disconnected'}`;
+        }
+
+        function updateActiveRooms(rooms) {
+            const roomsContainer = document.getElementById('activeRooms');
+            roomsContainer.innerHTML = '';
+
+            activeRooms.forEach((user, roomId) => {
+                const roomElement = document.createElement('div');
+                roomElement.className = 'room-info';
+                roomElement.innerHTML = `
+                    <span>${user.name} (${roomId})</span>
+                    <button onclick="selectRoom('${roomId}')">Select</button>
+                `;
+                roomsContainer.appendChild(roomElement);
+            });
+        }
+
+        function logEvent(name, data, isError = false) {
+            const eventLog = document.getElementById('eventLog');
+            const eventElement = document.createElement('div');
+            eventElement.className = `event-item ${isError ? 'error' : ''}`;
+            
+            const timestamp = new Date().toISOString();
+            eventElement.innerHTML = `
+                <div class="event-timestamp">${timestamp}</div>
+                <div class="event-name">${name}</div>
+                <div class="event-data">${JSON.stringify(data, null, 2)}</div>
+            `;
+
+            eventLog.insertBefore(eventElement, eventLog.firstChild);
+        }
+
+        // Actions
+        function initializeMessage() {
+            if (!socket) {
+                alert('Please authenticate first');
+                return;
+            }
+            socket.emit('server:initialize-message');
+            logEvent('Initializing messages', {});
+        }
+
+        function openNewRoom() {
+            const messengerId = prompt('Enter messenger ID:');
+            if (messengerId && socket) {
+                socket.emit('server:open-message-room', messengerId);
+                logEvent('Opening room', { messengerId });
+            }
+        }
+
+        function sendMessage() {
+            if (!currentRoom) {
+                alert('Please select a room first');
+                return;
+            }
+
+            const message = prompt('Enter message:');
+            if (message && socket) {
+                const msg_id = crypto.randomUUID();
+                socket.emit('server:send-message-event', message, msg_id, currentRoom);
+                logEvent('Sending message', { message, msg_id, roomId: currentRoom });
+            }
+        }
+
+        function simulateTyping() {
+            if (!currentRoom) {
+                alert('Please select a room first');
+                return;
+            }
+
+            socket.emit('server:typing-start', currentRoom);
+            logEvent('Started typing', { roomId: currentRoom });
+
+            setTimeout(() => {
+                socket.emit('server:typing-end', currentRoom);
+                logEvent('Stopped typing', { roomId: currentRoom });
+            }, 3000);
+        }
+
+        function selectRoom(roomId) {
+            currentRoom = roomId;
+            alert(`Selected room: ${roomId}`);
+        }
+
+        function clearLog() {
+            document.getElementById('eventLog').innerHTML = '';
+        }
+
+        // Auto-authenticate if credentials are stored
+        window.onload = () => {
+            const token = localStorage.getItem('authToken');
+            const profileType = localStorage.getItem('profileType');
+            if (token && profileType) {
+                initializeSocket(token, profileType);
+            }
+        };
+    </script>
+</body>
+</html>

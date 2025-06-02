@@ -1,0 +1,53 @@
+{
+    "gold": {
+        "name": "Gold",
+        "prices": {
+            "3": {
+                "price": 500,
+                "sms": 45
+            },
+            "6": {
+                "price": 799,
+                "sms": 63
+            },
+            "12": {
+                "price": 1299,
+                "sms": 93
+            }
+        }
+    },
+    "diamond": {
+        "name": "Diamond",
+        "prices": {
+            "3": {
+                "price": 799,
+                "sms": 63
+            },
+            "6": {
+                "price": 1300,
+                "sms": 93
+            },
+            "12": {
+                "price": 1999,
+                "sms": 105
+            }
+        }
+    },
+    "platinum": {
+        "name": "platinum",
+        "prices": {
+            "3": {
+                "price": 1301,
+                "sms": 100
+            },
+            "6": {
+                "price": 2000,
+                "sms": 156
+            },
+            "12": {
+                "price": 3002,
+                "sms": 204
+            }
+        }
+    }
+}

@@ -1,0 +1,569 @@
+/* بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ ﷺ InshaAllah */
+
+import { Router, Response, Request } from "express";
+import { validateUser, validateVideoProfile } from "../lib/middlewares/auth.middleware";
+import rateLimiter from "../config/rateRimiter";
+import { IAuthSession } from "../models/AuthSession";
+import { User } from "../models/user";
+import { _idValidator } from "../lib/schema/schemaComponents";
+import { formatDistanceToNow, isBefore } from 'date-fns';
+import { array, object, z, ZodEffects, ZodError } from 'zod';
+import queryMiddleware from "../lib/middlewares/query.middleware";
+import { userDetailsQuerySchema } from "../lib/schema/profile.schema";
+import { updateUserSchema, UpdateUserInput } from '../lib/schema/updateUser.schema';
+import { MembershipRequest } from "../models/membershipRequest";
+import { MembershipRequestStatus } from "../lib/types/memberdship.types";
+import { membershipRequestQuerySchema, membershipRequestSchema } from "../lib/schema/membership.schema";
+import { Asset } from "../models/asset";
+import { log } from "console";
+import { partnerPreferenceSchema } from "../lib/schema/partnerPreference.schema";
+import "../lib/types/express.decratation";
+import VideoProfile from "../models/VideoProfile";
+import CoinsTransection from "../models/CoinsTransection";
+const router: Router = Router();
+
+// Constants
+const RATE_LIMIT_WINDOW_MS = 120 * 1000; // 2 minutes
+const RATE_LIMIT_MAX_REQUESTS = 150;
+
+// Apply rate limiter
+router.use(rateLimiter(RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX_REQUESTS));
+router.use(queryMiddleware)
+
+
+router.get('/user-details/video-profile', validateVideoProfile, async function (req: Request, res: Response): Promise<Response | any> {
+    try {
+        return res.status(200).json({
+            success: true,
+            data: {
+                name: req.videoProfile.name,
+                gender: req.videoProfile.gender,
+                email: req.videoProfile.email,
+                age: req.videoProfile.age,
+                status: req.videoProfile.status,
+                country: req.videoProfile.location?.country,
+                _id: req.videoProfile._id,
+                languages: req.videoProfile.languages,
+                phone: req.videoProfile.phone,
+                lastActive: req.videoProfile.lastActive,
+                profileImage: req.videoProfile.profileImage,
+                coverImage: req.videoProfile.coverImage,
+                coins: req.videoProfile.video_calling_coins
+            }
+        });
+
+
+    } catch (error) {
+
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: 'InternalServerError',
+            data: null
+        });
+    }
+});
+
+
+router.put('/user-details/video-profile', validateVideoProfile, async function (req: Request, res: Response): Promise<Response | any> {
+    try {
+        // Define validation schema with all fields as optional
+        const updateSchema = z.object({
+            name: z.string().optional(),
+            gender: z.enum(['male', 'female',]).optional(),
+            status: z.enum(['online', 'offline']).optional(),
+            dateOfBirth: z.string().transform(val => new Date(val)).optional(),
+            age: z.number().optional(),
+            languages: z.array(z.string()).optional(),
+            location: z.object({
+                country: z.string().optional(),
+                lat: z.number().optional(),
+                long: z.number().optional()
+            }).optional(),
+            coverImage: z.object({ url: z.string().url(), id: z.string().uuid() }).optional(),
+            profileImage: z.object({ url: z.string().url(), id: z.string().uuid() }).optional(),
+        });
+
+        // Validate request body
+        const validatedData = updateSchema.parse(req.body);
+
+        // Find fields to update
+        const updateData: any = {};
+
+        // Map validated fields to updateData
+        if (validatedData.name) updateData.name = validatedData.name;
+        if (validatedData.gender) updateData.gender = validatedData.gender;
+        if (validatedData.status) updateData.status = validatedData.status;
+        if (validatedData.dateOfBirth) updateData.dateOfBirth = validatedData.dateOfBirth;
+        if (validatedData.age) updateData.age = validatedData.age;
+        if (validatedData.languages) updateData.languages = validatedData.languages;
+        if (validatedData.profileImage) updateData.profileImage = validatedData.profileImage;
+        if (validatedData.coverImage) updateData.coverImage = validatedData.coverImage;
+        // Handle nested location object
+        if (validatedData.location) {
+            if (!updateData.location) updateData.location = {};
+            if (validatedData.location.country !== undefined)
+                updateData.location.country = validatedData.location.country;
+            if (validatedData.location.lat !== undefined)
+                updateData.location.lat = validatedData.location.lat;
+            if (validatedData.location.long !== undefined)
+                updateData.location.long = validatedData.location.long;
+        }
+
+        // Update lastActive timestamp
+        updateData.lastActive = new Date();
+
+        // Update user profile
+        const updatedProfile = await VideoProfile.findByIdAndUpdate(
+            req.videoProfile._id,
+            { $set: updateData },
+            { new: true }
+        );
+
+        if (!updatedProfile) {
+            return res.status(404).json({
+                success: false,
+                message: 'User profile not found',
+                error: 'NotFound',
+                data: null
+            });
+        }
+
+        // Return updated profile with selected fields
+        return res.status(200).json({
+            success: true,
+            message: 'Profile updated successfully',
+            data: {
+                name: updateData.name && updatedProfile.name,
+                gender: updateData.gender && updatedProfile.gender,
+                age: updateData.age && updatedProfile.age,
+                status: updateData.status && updatedProfile.status,
+                country: updatedProfile.location?.country,
+                _id: updatedProfile._id,
+                languages: updateData.languages && updatedProfile.languages,
+                lastActive: updateData.lastActive && updatedProfile.lastActive,
+                profileImage: updateData.profileImage && updatedProfile.profileImage,
+                coverImage: updateData.coverImage && updatedProfile.coverImage,
+            }
+        });
+
+    } catch (error) {
+        console.error('Error updating profile:', error);
+
+        // Handle zod validation errors
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid request data',
+                error: 'ValidationError',
+                details: error.errors
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: 'InternalServerError',
+            data: null
+        });
+    }
+});
+
+
+router.get('/user-details/matrimony', validateUser, async function (req: Request, res: Response): Promise<Response | any> {
+    try {
+
+        let _id = req.authSession?.value?.userId;
+        if (!_id) return res.sendStatus(401);
+        let user = await User.findById(_id, 'name email phoneInfo profileImage coverImage occupation maritalStatus languages address education height age weight dateOfBirth gender profileCreatedBy mid onlineStatus aboutMe familyInfo membership').lean();
+
+        if (!user) return res.sendStatus(204);
+
+
+        let membership: any;
+
+
+        if (user.membership?.currentMembership.requestId && user.membership?.currentMembership?.membership_exipation_date.getTime() > Date.now()) {
+
+            membership = await MembershipRequest.findById(user.membership?.currentMembership?.requestId, 'tier endDate verifiedPhoneLimit').lean();
+            membership && delete membership._id;
+            delete user.membership;
+        }
+
+        if (user.membership?.currentMembership?.requestId && user.membership?.currentMembership?.membership_exipation_date.getTime() < Date.now()) {
+            await User.findByIdAndUpdate(user._id, {
+                'membership.currentMembership.requestId': undefined,
+                'membership.currentMembership.membership_exipation_date': undefined,
+            });
+        }
+
+        if (!membership) {
+            membership = { tier: 'FREE' };
+        }
+
+
+
+
+        res.status(200).json({
+            success: true,
+            data: {
+                ...user,
+                membership
+            },
+            error: null,
+            message: 'OK'
+        })
+        return;
+    } catch (error) {
+        if (error instanceof ZodError) {
+            res.status(400).json({
+                success: false,
+                message: 'Invalid request parameters',
+                error: error.errors,
+                data: null
+            });
+            return;
+        }
+        console.error('[matrimony User Details Api Error]', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            data: null
+        });
+    }
+});
+
+
+router.get('/user-details/matrimony/:id', validateUser, async function (req: Request, res: Response): Promise<Response | any> {
+    try {
+
+        let _id = _idValidator.parse(req.params.id);
+
+        let user = await User.findById(_id, 'name email phoneInfo profileImage coverImage occupation maritalStatus languages address education height age weight dateOfBirth gender profileCreatedBy mid onlineStatus aboutMe familyInfo').lean();
+
+        if (!user) return res.sendStatus(204);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                ...user,
+            },
+            error: null,
+            message: 'OK'
+        })
+        return;
+    } catch (error) {
+        if (error instanceof ZodError) {
+            res.status(400).json({
+                success: false,
+                message: 'Invalid request parameters',
+                error: error.errors,
+                data: null
+            });
+            return;
+        }
+        console.error('[matrimony User Details Api Error]', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            data: null
+        });
+    }
+});
+
+
+router.put('/user-details/matrimony', validateUser, async function (req: Request, res: Response): Promise<Response | any> {
+    try {
+        // 1. Parse and validate request body
+        const updateData = await updateUserSchema.parse(req.body);
+        if (!req.authSession || !req.authSession?.value) {
+            res.status(401).json({
+                success: false,
+                message: 'Failed to authorize the user',
+
+                data: null
+            });
+            return;
+        }
+        // 2. Get user ID from auth session
+        const userId = req.authSession.value.userId;
+
+        let updatesData: any = {};
+
+        // Basic Information
+        if (updateData.name) updatesData['name'] = updateData.name;
+        if (updateData.gender) updatesData['gender'] = updateData.gender;
+        if (updateData.dateOfBirth) updatesData['dateOfBirth'] = updateData.dateOfBirth;
+        if (updateData.weight) updatesData['weight'] = updateData.weight;
+        if (updateData.height) updatesData['height'] = updateData.height;
+        if (updateData.maritalStatus) updatesData['maritalStatus'] = updateData.maritalStatus;
+        if (updateData.phoneInfo?.number) updatesData['phoneInfo.number'] = updateData.phoneInfo.number;
+        if (updateData.address) updatesData['address'] = updateData.address;
+
+        // education
+        if (updateData.isEducated) updatesData['isEducated'] = updateData.isEducated;
+        if (updateData.education) updatesData['education'] = updateData.education;
+
+
+        // Background Information
+        if (updateData.religion) updatesData['religion'] = updateData.religion;
+        if (updateData.languages) updatesData['languages'] = updateData.languages;
+
+        // Education & Career
+        if (updateData.occupation) updatesData['occupation'] = updateData.occupation;
+        if (updateData.annualIncome) updatesData['annualIncome'] = updateData.annualIncome;
+
+
+        // profile image
+        if (updateData.profileImage) updatesData['profileImage'] = updateData.profileImage;
+        if (updateData.coverImage) updatesData['coverImage'] = updateData.coverImage;
+
+
+        // Filter out undefined values
+        updatesData = Object.fromEntries(
+            Object.entries(updatesData).filter(([_, value]) => value !== undefined)
+        );
+
+        if (Object.keys(updatesData).length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'No parameters found to update the user',
+                data: null
+            });
+        }
+
+        // Add last update timestamp
+        updatesData['lastUpdated'] = new Date();
+
+        // Update the user and return the new document
+        let updatedUser: any = await User.findByIdAndUpdate(
+            userId,
+            { $set: updatesData, },
+            {
+                runValidators: true // Run model validators
+            }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found',
+                data: null
+            });
+        }
+
+
+        updatedUser = updatedUser.toObject();
+
+        let updatedFields: any = {}
+        for (const [key, value] of Object.entries(updateData)) {
+            updatedFields[key] = updatedUser[key];
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'User details updated successfully',
+            data: { updatedFields }
+        });
+
+    } catch (error: any) {
+        console.error('[User Details Update api error]', { timestamp: new Date() });
+        console.error(error);
+
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({
+                success: false,
+                message: 'Validation error',
+                data: null,
+                errors: error.errors
+            });
+        }
+
+
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            data: null
+        });
+    }
+});
+
+
+router.put('/user-details/partner-preference/matrimony', validateUser, async function (req: Request, res: Response): Promise<Response | any> {
+    try {
+        // 1. Parse and validate request body against the partnerPreferenceSchema
+        const updateData = await partnerPreferenceSchema.parseAsync(req.body);
+        if (!req.authSession || !req.authSession?.value) {
+            res.status(401).json({
+                success: false,
+                message: 'Failed to authorize the user',
+
+                data: null
+            });
+            return;
+        }
+        // 2. Get user ID from auth session
+        const userId = req.authSession.value.userId;
+
+        // Check if any update parameters were provided
+
+        let updatesData: any = {};
+
+        // Conditionally add fields to updatesData
+        if (updateData.ageRange) updatesData['partnerPreference.ageRange'] = updateData.ageRange;
+        if (updateData.heightRange) updatesData['partnerPreference.heightRange'] = updateData.heightRange;
+        if (updateData.weightRange) updatesData['partnerPreference.weightRange'] = updateData.weightRange;
+        if (updateData.maritalStatus) updatesData['partnerPreference.maritalStatus'] = updateData.maritalStatus;
+        if (updateData.district) updatesData['partnerPreference.district'] = updateData.district;
+
+        // if (updateData.complexion) updatesData['partnerPreference.complexion'] = updateData.complexion;
+        // if (updateData.physicalStatus) updatesData['partnerPreference.physicalStatus'] = updateData.physicalStatus;
+        // if (updateData.religiousBranch) updatesData['partnerPreference.religiousBranch'] = updateData.religiousBranch;
+        // if (updateData.dealBreakers) updatesData['partnerPreference.dealBreakers'] = updateData.dealBreakers;
+        // if (updateData.locationPreference) updatesData['partnerPreference.locationPreference'] = updateData.locationPreference;
+        if (updateData.education) updatesData['partnerPreference.education'] = updateData.education;
+        if (updateData.profession) updatesData['partnerPreference.profession'] = updateData.profession;
+        if (updateData.religion) updatesData['partnerPreference.religion'] = updateData.religion;
+        // if (updateData.motherTongue) updatesData['partnerPreference.motherTongue'] = updateData.motherTongue;
+        // if (updateData.familyValues) updatesData['partnerPreference.familyValues'] = updateData.familyValues;
+        // if (updateData.familyBackground) updatesData['partnerPreference.familyBackground'] = updateData.familyBackground;
+
+        // Filter out undefined values (though Zod should handle this implicitly)
+        updatesData = Object.fromEntries(
+            Object.entries(updatesData).filter(([_, value]) => value !== undefined)
+        );
+
+        if (Object.keys(updatesData).length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'No partner preference parameters found to update',
+                data: null
+            });
+        }
+
+        // Add last update timestamp to the partnerPreference sub-document
+        updatesData['partnerPreference.lastUpdated'] = new Date();
+
+        // Update the user's partner preferences
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { $set: updatesData },
+            { new: true, runValidators: true } // 'new: true' returns the modified document, 'runValidators' ensures schema validation
+        );
+
+        if (!updatedUser) {
+            res.status(400).json({
+                success: false,
+                message: 'Failed to Update the User',
+                data: null
+            });
+            return;
+        }
+        return res.status(200).json({
+            success: true,
+            message: 'Partner preference updated successfully',
+            data: { updatedPreference: updatedUser.partnerPreference }
+        });
+
+    } catch (error: any) {
+        console.error('[Partner Preference Update api error]', { timestamp: new Date() });
+
+
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({
+                success: false,
+                message: 'Validation error',
+                data: null,
+                errors: error.errors
+            });
+        }
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            data: null
+        });
+    }
+});
+
+
+router.get('/user-details/profile-completion-score', validateUser, async function (req: Request, res: Response): Promise<Response | any> {
+    try {
+
+        let profileFields: string[] = [
+            'name',
+            'gender',
+            'dateOfBirth',
+            'weight',
+            'height',
+            'maritalStatus',
+            'phoneInfo.number',
+            'address.district.id',
+            'age',
+            'isEducated',
+            'education.level',
+            'education.certificate',
+            'religion',
+            'languages',
+            'occupation',
+            'annualIncome.amount' ,
+            'profileImage.url'
+        ];
+        let missingFields = [];
+        let foundFields=[];
+        let user: any = await User.findById(req.authSession?.value.userId).lean();
+
+        if (!user) throw 'user not found';
+
+        let highestScore = profileFields.length * 10;
+        let totalScore = 0;
+
+        for (let i = 0; i < profileFields.length; i++) {
+            let el: string = profileFields[i];
+            switch (el.split('.').length) {
+                case 2: {
+                    let [firstEl, lastEl] = el.split('.');
+                    if (user[firstEl] && user[firstEl][lastEl]) { totalScore += 10; foundFields.push(el) }
+                    else missingFields.push(el);
+                    break;
+                }
+                case 3: {
+                    let [firstEl, middleEl, lastEl] = el.split('.');
+                    if (user[firstEl] && user[firstEl][middleEl] && user[firstEl][middleEl][lastEl]) { totalScore += 10; foundFields.push(el) }
+                    else missingFields.push(el);
+                   
+                    break;
+                }
+                default:
+                    if (user[el]) { totalScore += 10; foundFields.push(el) }
+                    else missingFields.push(el);
+                    break;
+            }    
+        }
+
+
+        if (user.profileImage.url === 'https://res.cloudinary.com/dyptu4vd2/image/upload/v1748022824/ahxfhq76i0auizajvl6h.png' ) totalScore -= 10; // because Image is a avatar
+       
+        let score = totalScore / highestScore * 100;
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                score: score.toFixed(2) + '%',
+                missing_profile_fields: missingFields,
+                completed_profile_fields: foundFields
+            }
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            data: null
+        });
+    }
+});
+
+
+export default router;

@@ -1,0 +1,164 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Calling </title>
+</head>
+<body>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <div class="container mt-5">
+        <div id="setup-panel" class="card shadow-sm p-4 mb-5 bg-white rounded">
+            <h2 class="text-center mb-4">Random Video Call</h2>
+            <form id="call-setup-form">
+                <div class="form-group mb-3">
+                    <label for="token" class="form-label">Auth Token</label>
+                    <input type="text" id="token" class="form-control" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="call-type" class="form-label">Calling Type</label>
+                    <select id="call-type" class="form-select">
+                        <option value="video">Video</option>
+                        <option value="audio">Audio</option>
+                    </select>
+                </div>
+                <button type="button" id="start-call-btn" class="btn btn-primary w-100 mt-3">Start Call</button>
+            </form>
+            <div id="status" class="alert alert-secondary mt-3 text-center status-message">Not connected</div>
+        </div>
+
+        <div id="room" style="display: none;" class="card shadow p-4 bg-white rounded">
+            <h2 class="text-center mb-4">Random Video Calling Room</h2>
+            <div class="video-container row">
+                <div class="video-wrapper col-md-6 mb-3">
+                    <div class="card p-2">
+                        <video id="localVideo" autoplay muted playsinline class="img-fluid rounded"></video>
+                        <span class="video-label badge bg-primary mt-2">You</span>
+                    </div>
+                </div>
+                <div class="video-wrapper col-md-6 mb-3">
+                    <div class="card p-2">
+                        <video id="remoteVideo" autoplay playsinline class="img-fluid rounded"></video>
+                        <span class="video-label badge bg-secondary mt-2">Stranger</span>
+                    </div>
+                </div>
+            </div>
+            <div id="timer" class="alert alert-info text-center timer">Time left: 20s</div>
+            <div class="controls d-flex justify-content-center gap-2 mt-3">
+                <button id="mute-btn" class="btn btn-outline-secondary">Mute</button>
+                <button id="video-toggle-btn" class="btn btn-outline-secondary">Hide Video</button>
+                <button id="end-call-btn" class="btn btn-danger">End Call</button>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://unpkg.com/socket.io-client@4/dist/socket.io.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const startCallBtn = document.getElementById('start-call-btn');
+            const endCallBtn = document.getElementById('end-call-btn');
+            const muteBtn = document.getElementById('mute-btn');
+            const videoToggleBtn = document.getElementById('video-toggle-btn');
+            const setupPanel = document.getElementById('setup-panel');
+            const roomPanel = document.getElementById('room');
+            const statusElement = document.getElementById('status');
+            const timerElement = document.getElementById('timer');
+            const tokenInput = document.getElementById('token');
+            const callTypeSelect = document.getElementById('call-type');
+            
+            let socket;
+            let peer;
+            let localStream;
+            let remoteStream;
+            let currentCall = null;
+            let remotePeerId ;
+            let peerCall ;
+            let callData = {
+                requestId: null,
+                sessionId: null,
+                roomId: null,
+                connected: false,
+                timeLeft: 20,
+                timer: null
+            };
+            let isVideoCall = true;
+            
+            // Initialize call
+            startCallBtn.addEventListener('click', async () => {
+                const token = tokenInput.value.trim();
+               
+                if (!token) {
+                    alert('Please enter your auth token');
+                    return;
+                }
+                
+                try {
+
+                    navigator.mediaDevices.getUserMedia({ video: isVideoCall, audio: true })
+                    .then(stream => {
+                        const video = document.getElementById('localVideo');
+                        video.srcObject = stream;
+                        video.play();
+                        setupPanel.style.display ='none';
+                        roomPanel.style.display ='block';
+                        localStream = stream;
+                    });
+                
+                    // Connect to socket
+                    socket = io('/random-video-call', {
+                        auth: { token }
+                    });
+
+                    peer = new Peer({});
+
+                    peer.on('open', function(id) {
+                      socket.emit('create-video-call' , id);
+                      socket.on('room-created' , function (roomid) {
+                        socket.emit('connect-video-call' , roomid)
+                      })
+                    });
+
+                    socket.on('started', bool => {
+                        document.getElementById('timer').innerText = "Started finding User..."
+                    })
+
+                    socket.on('call-user' , (peerId) => {
+                        alert('caller')
+                        let call= peer.call(peerId , localStream);
+                        call.on('stream',  (stream) => {
+                            console.log(stream);
+                            document.getElementById('remoteVideo').srcObject = stream;
+                        });
+                        peerCall = call;
+                    });
+
+                    peer.on('call' , (call) => {
+                        alert('reciever')
+                        call.answer(localStream);
+                        call.on('stream', function (stream) {
+                            document.getElementById('remoteVideo').srcObject = stream;
+                        });
+                        peerCall = call;
+                    })
+
+
+
+                    socket.on('error' , data => alert(data.text));
+                } catch (error) {
+                    console.log(error);
+                    alert('Error accessing camera/microphone: ' + error.message);
+                }
+            });
+
+            document.querySelector('#call-type').addEventListener('change' , function (event ) {
+                isVideoCall = event.target.value === 'video' ;
+            });
+        });
+    </script>
+
+    
+</body>
+
+
+</html>

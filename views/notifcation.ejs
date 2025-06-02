@@ -1,0 +1,27 @@
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://unpkg.com/socket.io-client@4/dist/socket.io.min.js" ></script>
+</head>
+<body>
+    <main>
+        <script>
+            let socket = io('/notifications');
+            socket.on('notification' , (data) => { console.log(data )});
+            socket.on('connection-success' ,() => alert('connection success ' ) )
+            
+            setTimeout(() => {
+                socket.emit('hi', 'ewre')
+                socket.on('hello' , () => { alert('Hello')} )
+            }, 1000);
+            socket.on('connect' , (data) => {
+                console.log('server connnected ')
+            });
+            socket.on('disconnnect', () => console.log('server disconnected'))
+        </script>
+    </main>
+</body>
+</html>
