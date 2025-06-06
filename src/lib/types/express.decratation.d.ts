@@ -1,0 +1,19 @@
+// src/types/express.declaration.d.ts
+import { IAuthSession } from "@/models/AuthSession";
+import { IUser } from "./user.types";
+import { IVideoProfile } from "@/models/VideoProfile";
+import { INotificationSocketService } from "@/sockets/notification.socket";
+ // ✅ Add this
+
+declare global {
+  namespace Express {
+    interface Request {
+      authSession?: IAuthSession;
+      bearerAccessToken?: string;
+      profileType?: "videoProfile" | "matrimony_profile";
+      videoProfile?: IVideoProfile | any;
+      notifications?: INotificationSocketService;
+      user?: IUser; 
+    }
+  }
+}

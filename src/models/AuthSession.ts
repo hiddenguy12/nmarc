@@ -1,7 +1,7 @@
 /* بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ ﷺ InshaAllah */
 
-import mongoose, { Document, Mongoose, ObjectId, Schema, } from 'mongoose';
-import { EducationLevel, Gender, Height, Language, MaritalStatus, Occupation, Religion } from '../lib/types/user.types';
+import mongoose, { Document, Mongoose, ObjectId, Schema, Types, } from 'mongoose';
+import { EducationLevel, Gender, Height, IUser, Language, MaritalStatus, Occupation, Religion } from '../lib/types/user.types';
 import { CountryNamesEnum } from '../lib/types/country_names.enum';
 
 
@@ -102,6 +102,7 @@ export interface IAuthSession extends Document {
     expiration_date: Date;
     created_at: Date;
     updated_at?: Date;
+    user: Types.ObjectId | string
 }
 
 const AuthSessionValue = {

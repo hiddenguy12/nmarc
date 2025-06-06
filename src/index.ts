@@ -23,12 +23,14 @@ import userActionsRouter from './main_routes/user_actions';
 import expensesRouter from './main_routes/expenses';
 import { User } from './models/user';
 import './lib/types/express.decratation'
+import './types/express.d'
 import { randomVideoCallSocketService } from './sockets/randomVideoCall.socket';
 import { NotificationSocketService } from './sockets/notification.socket';
 import configureChatMessagingSocket from './sockets/chat.messaging.socket';
 import { error, log } from 'node:console';
 import generateMatrimonyId from './lib/core/mid-geneator';
 import { randomIntFromArray } from './lib/core/randomInt';
+import { friendRoutes } from './main_routes/friends';
 
 
 const app: express.Application = express();
@@ -77,6 +79,7 @@ async function main() {
     app.use('/api/coins', coinManagementRouter);
     app.use('/api/user-actions', userActionsRouter);
     app.use('/api/expenses', expensesRouter);
+    app.use('/api', friendRoutes)
 
     app.get('*', async function (req, res) {
         return res.sendFile(path.join(__dirname, '../public/index.html'));
