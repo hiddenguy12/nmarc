@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getFriendsList = exports.unfriendUser = exports.cancelFriendRequest = exports.rejectFriendRequest = exports.acceptFriendRequest = exports.sendFriendRequest = void 0;
-const AppError_1 = __importDefault(require("@/errors/AppError"));
-const user_1 = require("@/models/user");
+const AppError_1 = __importDefault(require("../errors/AppError"));
+const user_1 = require("../models/user");
 const mongoose_1 = __importDefault(require("mongoose"));
 // ✅ Send Friend Request
 const sendFriendRequest = async (req, res) => {

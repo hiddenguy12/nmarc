@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.friendRoutes = void 0;
-const friend_controller_1 = require("@/controllers/friend.controller");
-const auth_middleware_1 = require("@/lib/middlewares/auth.middleware");
+const friend_controller_1 = require("../controllers/friend.controller");
+const auth_middleware_1 = require("../lib/middlewares/auth.middleware");
 const express_1 = __importDefault(require("express"));
 const router = express_1.default.Router();
 // Accept friend request
