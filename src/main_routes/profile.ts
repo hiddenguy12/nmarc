@@ -17,7 +17,6 @@ import { membershipRequestQuerySchema, membershipRequestSchema } from "../lib/sc
 import { Asset } from "../models/asset";
 import { log } from "console";
 import { partnerPreferenceSchema } from "../lib/schema/partnerPreference.schema";
-import "../lib/types/express.decratation";
 import VideoProfile from "../models/VideoProfile";
 import CoinsTransection from "../models/CoinsTransection";
 const router: Router = Router();

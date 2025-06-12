@@ -1,6 +1,6 @@
 // src/types/express.declaration.d.ts
 import { IAuthSession } from "@/models/AuthSession";
-import { IUser } from "./user.types";
+import { IUser } from "../lib/types/user.types";
 import { IVideoProfile } from "@/models/VideoProfile";
 import { INotificationSocketService } from "@/sockets/notification.socket";
  // ✅ Add this
@@ -17,3 +17,6 @@ declare global {
     }
   }
 }
+
+
+export {}

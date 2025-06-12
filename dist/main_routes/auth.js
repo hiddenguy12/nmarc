@@ -54,7 +54,6 @@ const mid_geneator_1 = __importDefault(require("../lib/core/mid-geneator"));
 const zod_1 = require("zod");
 const countryNames_1 = __importDefault(require("../lib/data/countryNames"));
 const VideoProfile_1 = __importDefault(require("../models/VideoProfile"));
-require("../lib/types/express.decratation");
 const router = express_1.default.Router();
 router.use((0, rateRimiter_1.default)(600 * 100, 100));
 // Create registration session endpoint

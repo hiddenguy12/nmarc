@@ -14,7 +14,6 @@ const query_middleware_1 = __importDefault(require("../lib/middlewares/query.mid
 const updateUser_schema_1 = require("../lib/schema/updateUser.schema");
 const membershipRequest_1 = require("../models/membershipRequest");
 const partnerPreference_schema_1 = require("../lib/schema/partnerPreference.schema");
-require("../lib/types/express.decratation");
 const VideoProfile_1 = __importDefault(require("../models/VideoProfile"));
 const router = (0, express_1.Router)();
 // Constants

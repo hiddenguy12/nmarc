@@ -13,7 +13,6 @@ import morgan from 'morgan';
 import { cors } from './config/cors';
 import { createServer } from 'node:http';
 import { Server } from 'socket.io'
-import './lib/types/express.decratation';
 import adminRouter from './main_routes/admin';
 import path from 'node:path';
 import membershipRouter from './main_routes/Membership';
@@ -22,8 +21,6 @@ import connectionRequestRouter from './main_routes/connectionRequest'
 import userActionsRouter from './main_routes/user_actions';
 import expensesRouter from './main_routes/expenses';
 import { User } from './models/user';
-import './lib/types/express.decratation'
-import './types/express.d'
 import { randomVideoCallSocketService } from './sockets/randomVideoCall.socket';
 import { NotificationSocketService } from './sockets/notification.socket';
 import configureChatMessagingSocket from './sockets/chat.messaging.socket';
@@ -81,8 +78,8 @@ async function main() {
     app.use('/api/expenses', expensesRouter);
     app.use('/api', friendRoutes)
 
-    app.get('*', async function (req, res) {
-        return res.sendFile(path.join(__dirname, '../public/index.html'));
+    app.get('/', async function (req, res) {
+        res.send('Hello World!')
     })
 
     console.log(`Server is Fire at http://localhost:${port}`)

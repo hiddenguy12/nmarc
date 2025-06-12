@@ -18,7 +18,6 @@ import generateMatrimonyId from "../lib/core/mid-geneator";
 import { z, ZodError } from "zod";
 import countryNames from "../lib/data/countryNames";
 import VideoProfile, { IVideoProfile } from "../models/VideoProfile";
-import '../lib/types/express.decratation'
 const router: Router = express.Router();
 
 

@@ -4,7 +4,7 @@ import { Request, Response, NextFunction, } from 'express';
 import { authSessionValidation } from '../schema/auth.schema';
 import AuthSession, { IAuthSession } from '../../models/AuthSession';
 import VideoProfile, { IVideoProfile } from '../../models/VideoProfile';
-import '../types/express.decratation'
+
 
 
 

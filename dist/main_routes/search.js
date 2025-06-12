@@ -16,7 +16,6 @@ const schemaComponents_1 = require("../lib/schema/schemaComponents");
 const zod_1 = require("zod");
 const countryWithLatLong_1 = require("../lib/data/countryWithLatLong");
 const VideoProfile_1 = __importDefault(require("../models/VideoProfile"));
-require("../lib/types/express.decratation");
 const districts_1 = require("../lib/data/districts");
 const router = (0, express_1.Router)();
 router.use((0, rateRimiter_1.default)(120 * 1000, 200));

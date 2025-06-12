@@ -7,7 +7,8 @@ import countryFlagsEmoji from '../lib/data/CountryAndFlags';
 import { BASE_URL } from '../config/env';
 import { IVideoProfile } from '../models/VideoProfile';
 import { Gender } from '../lib/types/user.types';
-import { CustomRequest } from '../types/express'; 
+import { Request } from 'express';
+
 
 // --------------------- Distance Utility ---------------------
 export function getDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -70,7 +71,7 @@ interface IUserData {
   languages: string[];
 }
 
-export function getUserDataFromRequest(req: CustomRequest): IUserData | never {
+export function getUserDataFromRequest(req: Request): IUserData | never {
   if (req.profileType === 'videoProfile' && req.videoProfile) {
     const user = req.videoProfile;
     return {

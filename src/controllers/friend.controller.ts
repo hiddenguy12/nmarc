@@ -1,6 +1,6 @@
-import AppError from "@/errors/AppError";
+import AppError from "../errors/AppError";
 import { Request, Response } from "express";
-import { User } from "@/models/user";
+import { User } from "../models/user";
 import mongoose from "mongoose";
 
 // ✅ Send Friend Request

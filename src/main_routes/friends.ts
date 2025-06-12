@@ -1,5 +1,6 @@
-import { acceptFriendRequest, cancelFriendRequest, getFriendsList, rejectFriendRequest, unfriendUser } from "@/controllers/friend.controller";
-import { validateUser } from "@/lib/middlewares/auth.middleware";
+
+import { acceptFriendRequest, cancelFriendRequest, getFriendsList, rejectFriendRequest, unfriendUser } from "../controllers/friend.controller";
+import { validateUser } from "../lib/middlewares/auth.middleware";
 import express from "express";
 
 

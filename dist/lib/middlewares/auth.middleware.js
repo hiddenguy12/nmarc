@@ -11,7 +11,6 @@ exports.validateBothProfiledUser = validateBothProfiledUser;
 const auth_schema_1 = require("../schema/auth.schema");
 const AuthSession_1 = __importDefault(require("../../models/AuthSession"));
 const VideoProfile_1 = __importDefault(require("../../models/VideoProfile"));
-require("../types/express.decratation");
 // Utility function to extract token
 const extractBearerToken = (header) => {
     if (!header || !header.startsWith('Bearer ')) {

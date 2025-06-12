@@ -10,7 +10,7 @@ import { sendNotification } from "../lib/core/notification.service";
 import { User } from "../models/user";
 import { paginationSchema } from "../lib/schema/search.schema";
 import { IUserConnectionResponse } from "../lib/types/connectionRequest.types";
-import '../lib/types/express.decratation';
+
 
 
 const router : Router = Router();

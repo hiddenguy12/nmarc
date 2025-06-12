@@ -54,58 +54,68 @@ const aboutMeSchema = new mongoose_1.Schema({
     description: {
         type: String,
         trim: true,
-        maxlength: 1000
+        maxlength: 1000,
     },
     physicalStatus: {
         type: String,
         enum: Object.values(userProfile_types_1.PhysicalStatus),
-        default: userProfile_types_1.PhysicalStatus.NORMAL
+        default: userProfile_types_1.PhysicalStatus.NORMAL,
     },
     religiousBranch: {
         type: String,
-        enum: Object.values(userProfile_types_1.ReligiousBranch)
+        enum: Object.values(userProfile_types_1.ReligiousBranch),
     },
-    badHabits: [{
+    badHabits: [
+        {
             type: String,
             enum: Object.values(userProfile_types_1.BadHabits),
-            default: [userProfile_types_1.BadHabits.NONE]
-        }],
-    interestedSports: [{
+            default: [userProfile_types_1.BadHabits.NONE],
+        },
+    ],
+    interestedSports: [
+        {
             type: String,
-            enum: Object.values(userProfile_types_1.Sports)
-        }],
-    interestedHobbies: [{
+            enum: Object.values(userProfile_types_1.Sports),
+        },
+    ],
+    interestedHobbies: [
+        {
             type: String,
-            enum: Object.values(userProfile_types_1.Hobbies)
-        }],
-    interestedFoodTypes: [{
+            enum: Object.values(userProfile_types_1.Hobbies),
+        },
+    ],
+    interestedFoodTypes: [
+        {
             type: String,
-            enum: Object.values(userProfile_types_1.FoodTypes)
-        }],
-    interestedMusicTypes: [{
+            enum: Object.values(userProfile_types_1.FoodTypes),
+        },
+    ],
+    interestedMusicTypes: [
+        {
             type: String,
-            enum: Object.values(userProfile_types_1.MusicTypes)
-        }]
+            enum: Object.values(userProfile_types_1.MusicTypes),
+        },
+    ],
 });
 const familyInfoSchema = new mongoose_1.Schema({
     aboutFamily: {
         type: String,
         trim: true,
-        maxlength: 1000
+        maxlength: 1000,
     },
     familyOrigin: {
         type: String,
-        trim: true
+        trim: true,
     },
     numberOfBrothers: {
         type: Number,
         min: 0,
-        default: 0
+        default: 0,
     },
     numberOfSisters: {
         type: Number,
         min: 0,
-        default: 0
+        default: 0,
     },
     numberOfMarriedBrothers: {
         type: Number,
@@ -116,16 +126,16 @@ const familyInfoSchema = new mongoose_1.Schema({
         type: Number,
         min: 0,
         default: 0,
-    }
+    },
 });
 const blockedProfileSchema = new mongoose_1.Schema({
     userId: {
         type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'User',
-        required: false
+        ref: "User",
+        required: false,
     },
     blockedAt: Date,
-    reason: String
+    reason: String,
 });
 const enhancedSettingsSchema = {
     blocked: [blockedProfileSchema],
@@ -133,69 +143,69 @@ const enhancedSettingsSchema = {
         whoCanViewProfile: {
             type: String,
             enum: Object.values(userProfile_types_1.SettingsPermissionType),
-            default: userProfile_types_1.SettingsPermissionType.EVERYONE
+            default: userProfile_types_1.SettingsPermissionType.EVERYONE,
         },
         whoCanContactMe: {
             type: String,
             enum: Object.values(userProfile_types_1.SettingsPermissionType),
-            default: userProfile_types_1.SettingsPermissionType.EVERYONE
+            default: userProfile_types_1.SettingsPermissionType.EVERYONE,
         },
         showShortlistedNotification: {
             type: Boolean,
-            default: true
+            default: true,
         },
         showProfileViewNotification: {
             type: Boolean,
-            default: true
-        }
+            default: true,
+        },
     },
     notifications: {
         dailyRecommendations: {
             type: Boolean,
-            default: true
+            default: true,
         },
         todaysMatch: {
             type: Boolean,
-            default: true
+            default: true,
         },
         profileViews: {
             type: Boolean,
-            default: true
+            default: true,
         },
         shortlists: {
             type: Boolean,
-            default: true
+            default: true,
         },
         messages: {
             type: Boolean,
-            default: true
+            default: true,
         },
         connectionRequests: {
             type: Boolean,
-            default: true
-        }
-    }
+            default: true,
+        },
+    },
 };
 const userMembershipSchema = new mongoose_1.Schema({
     currentMembership: {
         requestId: {
             type: mongoose_1.Schema.Types.ObjectId,
-            ref: 'MembershipRequest',
-            required: false
+            ref: "MembershipRequest",
+            required: false,
         },
-        membership_exipation_date: Date
-    }
+        membership_exipation_date: Date,
+    },
 });
 const suspensionEntrySchema = new mongoose_1.Schema({
     reason: {
         type: String,
         required: false,
-        trim: true
+        trim: true,
     },
     date: {
         type: Date,
         required: false,
-    }
+    },
 });
 const settingsSchema = new mongoose_1.Schema({
     notifications: {
@@ -203,19 +213,19 @@ const settingsSchema = new mongoose_1.Schema({
             type: String,
             required: true,
             enum: Object.values(user_types_1.SettingsType),
-            default: Object.values(user_types_1.SettingsType)[0]
+            default: Object.values(user_types_1.SettingsType)[0],
         },
         todaysMatch: {
             type: String,
             required: true,
             enum: Object.values(user_types_1.SettingsType),
-            default: Object.values(user_types_1.SettingsType)[0]
+            default: Object.values(user_types_1.SettingsType)[0],
         },
         viewedMyProfile: {
             type: String,
             required: true,
             enum: Object.values(user_types_1.SettingsType),
-            default: Object.values(user_types_1.SettingsType)[0]
+            default: Object.values(user_types_1.SettingsType)[0],
         },
     },
     privacy: {
@@ -223,15 +233,15 @@ const settingsSchema = new mongoose_1.Schema({
             type: String,
             required: true,
             enum: Object.values(user_types_1.SettingsType),
-            default: Object.values(user_types_1.SettingsType)[0]
-        }
-    }
+            default: Object.values(user_types_1.SettingsType)[0],
+        },
+    },
 });
 const onlineStatusSchema = new mongoose_1.Schema({
     isOnline: {
         type: Boolean,
         default: false,
-        required: true
+        required: true,
     },
     lastSeen: {
         type: Date,
@@ -240,27 +250,27 @@ const onlineStatusSchema = new mongoose_1.Schema({
     lastActive: {
         type: Date,
         default: Date.now,
-    }
+    },
 });
 const addressSchema = new mongoose_1.Schema({
     division: {
         id: {
             type: String,
-            required: true
+            required: true,
         },
         name: {
             type: String,
-            required: true
+            required: true,
         },
         bd_name: {
             type: String,
-            required: true
-        }
+            required: true,
+        },
     },
     district: {
         id: {
             type: String,
-            required: true
+            required: true,
         },
         division_id: {
             type: String,
@@ -268,69 +278,69 @@ const addressSchema = new mongoose_1.Schema({
         },
         name: {
             type: String,
-            required: true
+            required: true,
         },
         bn_name: {
             type: String,
-            required: true
+            required: true,
         },
         lat: Number,
-        long: Number
+        long: Number,
     },
     upazila: {
         id: {
             type: String,
-            required: true
+            required: true,
         },
         district_id: {
             type: String,
-            required: true
+            required: true,
         },
         name: {
             type: String,
-            required: true
+            required: true,
         },
         bn_name: {
             type: String,
-        }
+        },
     },
     union: {
         id: {
             type: String,
-            required: true
+            required: true,
         },
         upazilla_id: {
             type: String,
-            required: true
+            required: true,
         },
         name: {
             type: String,
-            required: true
+            required: true,
         },
         bn_name: {
             type: String,
-            required: true
-        }
-    }
+            required: true,
+        },
+    },
 }, { _id: false });
 const phoneInfoSchema = new mongoose_1.Schema({
     number: {
         type: String,
-        required: true
+        required: true,
     },
     country: {
         name: {
             type: String,
-            enum: countryCodes_1.countryCodes.map(element => element.country),
-            required: true
+            enum: countryCodes_1.countryCodes.map((element) => element.country),
+            required: true,
         },
         phone_code: {
             type: String,
             required: true,
-            enum: countryCodes_1.countryCodes.map(element => element.code),
-            maxlength: 5
-        }
-    }
+            enum: countryCodes_1.countryCodes.map((element) => element.code),
+            maxlength: 5,
+        },
+    },
 });
 const userSchema = new mongoose_1.Schema({
     /**
@@ -350,12 +360,16 @@ const userSchema = new mongoose_1.Schema({
         required: true,
         unique: true,
         trim: true,
-        lowercase: true
+        lowercase: true,
     },
     password: {
         hashed: { type: String, required: true },
         salt: { type: String, required: true },
     },
+    // Friends
+    friendRequests: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "User" }],
+    sentRequests: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "User" }],
+    friends: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "User" }],
     /**
      * Profile Creation & Management
      * ---------------------------
@@ -364,12 +378,12 @@ const userSchema = new mongoose_1.Schema({
     profileCreatedBy: {
         type: String,
         enum: Object.values(user_types_1.ProfileCreatedBy),
-        required: true
+        required: true,
     },
     createdAt: {
         type: Date,
         required: true,
-        default: Date.now
+        default: Date.now,
     },
     /**
      * Basic Personal Information
@@ -384,17 +398,17 @@ const userSchema = new mongoose_1.Schema({
     gender: {
         type: String,
         enum: Object.values(user_types_1.Gender),
-        required: true
+        required: true,
     },
     dateOfBirth: {
         type: Date,
-        required: true
+        required: true,
     },
     age: {
         type: Number,
         required: true,
         min: 18,
-        max: 70
+        max: 70,
     },
     /**
      * Physical Attributes
@@ -410,7 +424,7 @@ const userSchema = new mongoose_1.Schema({
         type: Number,
         required: true,
         min: 30,
-        max: 200 // in kilograms
+        max: 200, // in kilograms
     },
     /**
      * Media & Images
@@ -418,17 +432,31 @@ const userSchema = new mongoose_1.Schema({
      * User's profile pictures and other images
      */
     profileImage: {
-        url: { type: String, default: 'https://res.cloudinary.com/dyptu4vd2/image/upload/v1748022824/ahxfhq76i0auizajvl6h.png', required: true },
-        id: { type: String, }
+        url: {
+            type: String,
+            default: "https://res.cloudinary.com/dyptu4vd2/image/upload/v1748022824/ahxfhq76i0auizajvl6h.png",
+            required: true,
+        },
+        id: { type: String },
     },
     coverImage: {
-        url: { type: String, default: 'https://res.cloudinary.com/dyptu4vd2/image/upload/v1748022824/ahxfhq76i0auizajvl6h.png', required: true },
-        id: String
+        url: {
+            type: String,
+            default: "https://res.cloudinary.com/dyptu4vd2/image/upload/v1748022824/ahxfhq76i0auizajvl6h.png",
+            required: true,
+        },
+        id: String,
     },
-    userImages: [{
-            url: { type: String, default: 'https://res.cloudinary.com/dyptu4vd2/image/upload/v1748022824/ahxfhq76i0auizajvl6h.png', required: true },
-            id: { type: String, required: false }
-        }],
+    userImages: [
+        {
+            url: {
+                type: String,
+                default: "https://res.cloudinary.com/dyptu4vd2/image/upload/v1748022824/ahxfhq76i0auizajvl6h.png",
+                required: true,
+            },
+            id: { type: String, required: false },
+        },
+    ],
     /**
      * Educational Background
      * --------------------
@@ -437,35 +465,45 @@ const userSchema = new mongoose_1.Schema({
     isEducated: {
         type: Boolean,
         default: true,
-        required: true
+        required: true,
     },
-    education: [{
+    education: [
+        {
             level: {
                 type: String,
-                required: function () { return this.isEducated; },
-                enum: Object.values(user_types_1.EducationLevel)
+                required: function () {
+                    return this.isEducated;
+                },
+                enum: Object.values(user_types_1.EducationLevel),
             },
             certificate: {
                 type: String,
-                required: function () { return this.isEducated; }
+                required: function () {
+                    return this.isEducated;
+                },
             },
             institution: {
                 type: String,
-                required: function () { return this.isEducated; }
+                required: function () {
+                    return this.isEducated;
+                },
             },
             yearOfCompletion: {
                 type: Number,
-                required: function () { return this.isEducated; }
+                required: function () {
+                    return this.isEducated;
+                },
             },
             grade: {
                 type: String,
-                required: false
+                required: false,
             },
             additionalInfo: {
                 type: String,
-                required: false
-            }
-        }],
+                required: false,
+            },
+        },
+    ],
     /**
      * Contact & Location Information
      * ----------------------------
@@ -473,7 +511,7 @@ const userSchema = new mongoose_1.Schema({
      */
     address: {
         type: addressSchema,
-        required: true
+        required: true,
     },
     phoneInfo: phoneInfoSchema,
     /**
@@ -481,20 +519,22 @@ const userSchema = new mongoose_1.Schema({
      * ---------------------------
      * Cultural and personal characteristics
      */
-    languages: [{
+    languages: [
+        {
             type: String,
             enum: Object.values(user_types_1.Language),
-            required: true
-        }],
+            required: true,
+        },
+    ],
     religion: {
         type: String,
         enum: Object.values(user_types_1.Religion),
-        required: true
+        required: true,
     },
     maritalStatus: {
         type: String,
         enum: Object.values(user_types_1.MaritalStatus),
-        required: false
+        required: false,
     },
     /**
      * Professional Information
@@ -504,7 +544,7 @@ const userSchema = new mongoose_1.Schema({
     occupation: {
         type: String,
         enum: Object.values(user_types_1.Occupation),
-        required: false
+        required: false,
     },
     annualIncome: {
         amount: {
@@ -515,29 +555,35 @@ const userSchema = new mongoose_1.Schema({
             max: 1000000000, // 1 billion BDT
             validate: {
                 validator: Number.isInteger,
-                message: 'Annual income must be a whole number'
-            }
+                message: "Annual income must be a whole number",
+            },
         },
         currency: {
             type: String,
-            required() { return !!this.annualIncome?.currency; },
+            required() {
+                return !!this.annualIncome?.currency;
+            },
             uppercase: true,
             enum: Object.values(currencyCodes_enum_1.CurrencyCode),
             minlength: 3,
             maxlength: 3,
-            default: 'BDT'
-        }
+            default: "BDT",
+        },
     },
-    // Messaging Rooms 
+    // Messaging Rooms
     messagingRooms: {
-        connectedRooms: [{
+        connectedRooms: [
+            {
                 type: mongoose_1.default.SchemaTypes.ObjectId,
-                ref: 'MessagingRoom'
-            }],
-        blockedRooms: [{
+                ref: "MessagingRoom",
+            },
+        ],
+        blockedRooms: [
+            {
                 type: mongoose_1.default.SchemaTypes.ObjectId,
-                ref: 'MessagingRoom'
-            }]
+                ref: "MessagingRoom",
+            },
+        ],
     },
     socket_ids: {
         notification_socket: String,
@@ -553,8 +599,8 @@ const userSchema = new mongoose_1.Schema({
         type: partnerPreference_schema_1.partnerPreferenceSchema,
         required: true,
         default: function () {
-            return ({});
-        }
+            return {};
+        },
     },
     /**
      * Platform Features & Settings
@@ -574,28 +620,35 @@ const userSchema = new mongoose_1.Schema({
      * -------------------
      * User's connections and relationship with other users
      */
-    connections: [{
+    connections: [
+        {
             type: mongoose_1.Schema.Types.ObjectId,
-            ref: 'User'
-        }],
-    pendingIncomingRequests: [{
+            ref: "User",
+        },
+    ],
+    pendingIncomingRequests: [
+        {
             type: mongoose_1.Schema.Types.ObjectId,
-            ref: 'ConnectionRequest'
-        }],
-    pendingOutgoingRequests: [{
+            ref: "ConnectionRequest",
+        },
+    ],
+    pendingOutgoingRequests: [
+        {
             type: mongoose_1.Schema.Types.ObjectId,
-            ref: 'ConnectionRequest'
-        }],
+            ref: "ConnectionRequest",
+        },
+    ],
     suspension: {
         isSuspended: {
             type: Boolean,
             default: false,
         },
-        suspensions: [suspensionEntrySchema]
-    }
+        suspensions: [suspensionEntrySchema],
+    },
 });
 userSchema.methods.hasActiveMembership = function () {
-    if (!this.currentMembership.requestId || !this.currentMembership.membership_exipation_date)
+    if (!this.currentMembership.requestId ||
+        !this.currentMembership.membership_exipation_date)
         return false;
     else if (Date.now() > this.currentMembership.membership_exipation_date.getTime())
         return true;
@@ -623,20 +676,20 @@ userSchema.methods.hasProfileHighlighter = function () {
 userSchema.methods.createPreference = function () {
     // IIFE for generating height range using existing utility
     const heightPreferences = (() => {
-        const userHeightInFeet = parseInt(this.height.split(' ')[0]);
+        const userHeightInFeet = parseInt(this.height.split(" ")[0]);
         // Cultural considerations for Bengali marriages
         if (this.gender === user_types_1.Gender.MALE) {
             // Men typically prefer women slightly shorter
             return {
                 min: (0, randomInt_1.randomIntFromArray)([4, 5]),
-                max: (0, randomInt_1.randomIntFromArray)([6, 7])
+                max: (0, randomInt_1.randomIntFromArray)([6, 7]),
             };
         }
         else {
             // Women typically prefer men slightly taller
             return {
                 min: (0, randomInt_1.randomIntFromArray)([4, 5, 6]),
-                max: (0, randomInt_1.randomIntFromArray)([7, 8])
+                max: (0, randomInt_1.randomIntFromArray)([7, 8]),
             };
         }
     })();
@@ -664,20 +717,22 @@ userSchema.methods.createPreference = function () {
     // IIFE for location preferences with district-based matching
     const locationPreferences = (() => {
         const isBangladeshi = this.address.country === country_names_enum_1.CountryNamesEnum.BANGLADESH;
-        if (isBangladeshi && this.address.district?.lat && this.address.district?.long) {
+        if (isBangladeshi &&
+            this.address.district?.lat &&
+            this.address.district?.long) {
             const nearestDistricts = (0, search_controller_1.findNearestDistricts)(this.address.district.lat, this.address.district.long, 7);
             return {
                 preferredCountries: [country_names_enum_1.CountryNamesEnum.BANGLADESH],
                 preferredRegions: [this.address.division?.id],
-                preferredCities: nearestDistricts.map(d => d.id),
+                preferredCities: nearestDistricts.map((d) => d.id),
                 locationType: partnerPreference_1.PreferredLocation.SAME_STATE,
-                willingToRelocate: this.gender === user_types_1.Gender.FEMALE
+                willingToRelocate: this.gender === user_types_1.Gender.FEMALE,
             };
         }
         return {
             preferredCountries: [this.address.country],
             locationType: partnerPreference_1.PreferredLocation.SAME_COUNTRY,
-            willingToRelocate: this.gender === user_types_1.Gender.FEMALE
+            willingToRelocate: this.gender === user_types_1.Gender.FEMALE,
         };
     })();
     // IIFE for education and profession preferences with proper typing and cultural norms
@@ -704,29 +759,28 @@ userSchema.methods.createPreference = function () {
                 user_types_1.Occupation.DOCTOR,
                 user_types_1.Occupation.ENGINEER,
                 user_types_1.Occupation.BUSINESS_OWNER,
-                user_types_1.Occupation.BANKER
+                user_types_1.Occupation.BANKER,
             ];
             // Occupations to exclude based on cultural norms
             const culturallyExcludedOccupations = [
                 user_types_1.Occupation.UNEMPLOYED,
                 user_types_1.Occupation.DAILY_LABORER,
-                ...(this.gender === user_types_1.Gender.FEMALE ? [
-                    user_types_1.Occupation.CONSTRUCTION_WORKER,
-                    user_types_1.Occupation.SECURITY_GUARD
-                ] : [])
+                ...(this.gender === user_types_1.Gender.FEMALE
+                    ? [user_types_1.Occupation.CONSTRUCTION_WORKER, user_types_1.Occupation.SECURITY_GUARD]
+                    : []),
             ];
             if (this.gender === user_types_1.Gender.FEMALE) {
                 // For female users seeking male partners
-                return allOccupations.filter(occ => !culturallyExcludedOccupations.includes(occ) &&
+                return allOccupations.filter((occ) => !culturallyExcludedOccupations.includes(occ) &&
                     (baseAcceptableOccupations.includes(occ) ||
-                        occ.includes('MANAGER') ||
-                        occ.includes('OFFICER') ||
-                        occ.includes('PROFESSIONAL')));
+                        occ.includes("MANAGER") ||
+                        occ.includes("OFFICER") ||
+                        occ.includes("PROFESSIONAL")));
             }
             else {
                 // For male users seeking female partners
                 // More flexible with occupations but prioritize certain professions
-                return allOccupations.filter(occ => !culturallyExcludedOccupations.includes(occ));
+                return allOccupations.filter((occ) => !culturallyExcludedOccupations.includes(occ));
             }
         };
         // Get education preferences based on cultural norms
@@ -741,7 +795,7 @@ userSchema.methods.createPreference = function () {
                 return {
                     minimumLevel: userHighestEdu?.level || user_types_1.EducationLevel.BACHELORS_DEGREE,
                     mustBeEducated: true,
-                    preferredLevels: educationLevels.slice(userLevelIndex)
+                    preferredLevels: educationLevels.slice(userLevelIndex),
                 };
             }
             else {
@@ -749,7 +803,7 @@ userSchema.methods.createPreference = function () {
                 return {
                     minimumLevel: user_types_1.EducationLevel.HSC,
                     mustBeEducated: this.isEducated,
-                    preferredLevels: educationLevels.slice(0, Math.min(userLevelIndex + 2, educationLevels.length))
+                    preferredLevels: educationLevels.slice(0, Math.min(userLevelIndex + 2, educationLevels.length)),
                 };
             }
         };
@@ -759,10 +813,12 @@ userSchema.methods.createPreference = function () {
                 return undefined;
             return {
                 min: 100000,
-                max: this.annualIncome.amount ?
-                    (this.gender === user_types_1.Gender.MALE ? this.annualIncome.amount : this.annualIncome.amount * 1.5)
+                max: this.annualIncome.amount
+                    ? this.gender === user_types_1.Gender.MALE
+                        ? this.annualIncome.amount
+                        : this.annualIncome.amount * 1.5
                     : 300000,
-                currency: this.annualIncome.currency
+                currency: this.annualIncome.currency,
             };
         };
         return {
@@ -773,17 +829,17 @@ userSchema.methods.createPreference = function () {
                     partnerPreference_1.EmploymentSector.GOVERNMENT,
                     partnerPreference_1.EmploymentSector.PRIVATE,
                     partnerPreference_1.EmploymentSector.BUSINESS,
-                    ...(this.gender === user_types_1.Gender.FEMALE ? [partnerPreference_1.EmploymentSector.DEFENSE] : [])
+                    ...(this.gender === user_types_1.Gender.FEMALE ? [partnerPreference_1.EmploymentSector.DEFENSE] : []),
                 ],
-                minimumAnnualIncome: getMinimumIncomePreference()
-            }
+                minimumAnnualIncome: getMinimumIncomePreference(),
+            },
         };
     })();
     // Calculate BMI-based weight preferences
     const weightPreferences = (() => {
         return {
             min: this.gender === user_types_1.Gender.MALE ? 45 : 55,
-            max: this.gender === user_types_1.Gender.MALE ? 90 : 110
+            max: this.gender === user_types_1.Gender.MALE ? 90 : 110,
         };
     })();
     this.partnerPreference = {
@@ -792,33 +848,38 @@ userSchema.methods.createPreference = function () {
         weightRange: weightPreferences,
         maritalStatus: [
             user_types_1.MaritalStatus.NEVER_MARRIED,
-            ...(this.maritalStatus !== user_types_1.MaritalStatus.NEVER_MARRIED ?
-                [this.maritalStatus] : [])
+            ...(this.maritalStatus !== user_types_1.MaritalStatus.NEVER_MARRIED
+                ? [this.maritalStatus]
+                : []),
         ],
-        complexion: Object.values(partnerPreference_1.ComplexionPreference).filter(c => c !== partnerPreference_1.ComplexionPreference.ANY),
+        complexion: Object.values(partnerPreference_1.ComplexionPreference).filter((c) => c !== partnerPreference_1.ComplexionPreference.ANY),
         physicalStatus: [userProfile_types_1.PhysicalStatus.NORMAL],
-        religiousBranch: this.aboutMe?.religiousBranch ? [this.aboutMe.religiousBranch] : undefined,
+        religiousBranch: this.aboutMe?.religiousBranch
+            ? [this.aboutMe.religiousBranch]
+            : undefined,
         dealBreakers: [userProfile_types_1.BadHabits.SMOKING, userProfile_types_1.BadHabits.DRINKING],
         locationPreference: locationPreferences,
         ...educationAndProfessionPreferences,
         religion: [this.religion],
         motherTongue: this.languages.slice(0, 1),
         familyValues: [partnerPreference_1.FamilyValues.TRADITIONAL, partnerPreference_1.FamilyValues.MODERATE],
-        familyBackground: this.familyInfo ? {
-            maxSiblings: Math.max((this.familyInfo.numberOfBrothers || 0) + 2, (this.familyInfo.numberOfSisters || 0) + 2),
-            preferredFamilyType: ['joint', 'nuclear'],
-            preferredFamilyStatus: ['middle_class', 'upper_middle_class']
-        } : undefined,
+        familyBackground: this.familyInfo
+            ? {
+                maxSiblings: Math.max((this.familyInfo.numberOfBrothers || 0) + 2, (this.familyInfo.numberOfSisters || 0) + 2),
+                preferredFamilyType: ["joint", "nuclear"],
+                preferredFamilyStatus: ["middle_class", "upper_middle_class"],
+            }
+            : undefined,
         strictPreferences: this.gender === user_types_1.Gender.FEMALE,
         priority: {
             education: this.isEducated ? 5 : 3,
             profession: this.occupation ? 4 : 3,
             location: 3,
             religion: 5,
-            age: 4
+            age: 4,
         },
         lastUpdated: new Date(),
-        district: this.address.district.name
+        district: this.address.district.name,
     };
     return this;
 };
@@ -829,7 +890,7 @@ userSchema.methods.suspend = function (reason) {
     this.suspension.isSuspended = true;
     this.suspension.suspensions.push({
         reason,
-        date: new Date()
+        date: new Date(),
     });
     return this;
 };
@@ -841,26 +902,30 @@ userSchema.methods.getSuspensionHistory = function () {
     return this.suspension.suspensions;
 };
 userSchema.methods.hasActiveMembership = function () {
-    return !!this.membership?.currentMembership?.requestId && !!this.membership?.currentMembership?.membership_exipation_date && (0, date_fns_1.isBefore)(new Date(), this.membership.currentMembership.membership_exipation_date);
+    return (!!this.membership?.currentMembership?.requestId &&
+        !!this.membership?.currentMembership?.membership_exipation_date &&
+        (0, date_fns_1.isBefore)(new Date(), this.membership.currentMembership.membership_exipation_date));
 };
 userSchema.index({ gender: 1 });
 userSchema.index({ age: 1 });
 userSchema.index({ createdAt: -1 });
-userSchema.index({ 'education.level': 1 });
+userSchema.index({ "education.level": 1 });
 userSchema.index({ dateOfBirth: 1 });
-userSchema.index({ 'address.district.id': 1 });
+userSchema.index({ "address.district.id": 1 });
 userSchema.index({ "suspension.isSuspended": 1 });
-userSchema.index({ 'onlineStatus.lastActive': -1 });
+userSchema.index({ "onlineStatus.lastActive": -1 });
 userSchema.index({ maritalStatus: 1 });
 userSchema.index({ occupation: 1 });
-userSchema.index({ 'annualIncome.amount': 1, 'annualIncome.currency': 1 });
-userSchema.index({ 'membership.currentMembership.isActive': 1 });
-userSchema.index({ 'membership.currentMembership.endDate': 1 });
-userSchema.index({ 'membership.currentMembership.tier': 1 });
-userSchema.index({ 'partnerPreference.ageRange': 1 });
-userSchema.index({ 'partnerPreference.heightRange': 1 });
-userSchema.index({ 'partnerPreference.religion': 1 });
-userSchema.index({ 'partnerPreference.locationPreference.preferredCountries': 1 });
-userSchema.index({ 'partnerPreference.education.minimumLevel': 1 });
-userSchema.index({ 'partnerPreference.profession.acceptedOccupations': 1 });
-exports.User = mongoose_1.default.model('User', userSchema);
+userSchema.index({ "annualIncome.amount": 1, "annualIncome.currency": 1 });
+userSchema.index({ "membership.currentMembership.isActive": 1 });
+userSchema.index({ "membership.currentMembership.endDate": 1 });
+userSchema.index({ "membership.currentMembership.tier": 1 });
+userSchema.index({ "partnerPreference.ageRange": 1 });
+userSchema.index({ "partnerPreference.heightRange": 1 });
+userSchema.index({ "partnerPreference.religion": 1 });
+userSchema.index({
+    "partnerPreference.locationPreference.preferredCountries": 1,
+});
+userSchema.index({ "partnerPreference.education.minimumLevel": 1 });
+userSchema.index({ "partnerPreference.profession.acceptedOccupations": 1 });
+exports.User = mongoose_1.default.model("User", userSchema);

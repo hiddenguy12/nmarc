@@ -7,7 +7,6 @@ const connectionRequest_schema_1 = require("../lib/schema/connectionRequest.sche
 const zod_1 = require("zod");
 const ConnectionRequest_1 = require("../models/ConnectionRequest");
 const user_1 = require("../models/user");
-require("../lib/types/express.decratation");
 const router = (0, express_1.Router)();
 let userField = 'name _id address email age isEducated education address religion languages maritalStatus occupation annualIncome';
 router.use(auth_middleware_1.validateUser);

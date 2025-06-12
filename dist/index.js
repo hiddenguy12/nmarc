@@ -50,7 +50,6 @@ const morgan_1 = __importDefault(require("morgan"));
 const cors_1 = require("./config/cors");
 const node_http_1 = require("node:http");
 const socket_io_1 = require("socket.io");
-require("./lib/types/express.decratation");
 const admin_1 = __importDefault(require("./main_routes/admin"));
 const node_path_1 = __importDefault(require("node:path"));
 const Membership_1 = __importDefault(require("./main_routes/Membership"));
@@ -58,10 +57,11 @@ const coinManagement_1 = __importDefault(require("./main_routes/coinManagement")
 const connectionRequest_1 = __importDefault(require("./main_routes/connectionRequest"));
 const user_actions_1 = __importDefault(require("./main_routes/user_actions"));
 const expenses_1 = __importDefault(require("./main_routes/expenses"));
-require("./lib/types/express.decratation");
+require("./types/express.d");
 const randomVideoCall_socket_1 = require("./sockets/randomVideoCall.socket");
 const notification_socket_1 = require("./sockets/notification.socket");
 const chat_messaging_socket_1 = __importDefault(require("./sockets/chat.messaging.socket"));
+const friends_1 = require("./main_routes/friends");
 const app = (0, express_1.default)();
 const port = Number(env_1.PORT ?? 4000);
 const server = (0, node_http_1.createServer)(app).listen(port);
@@ -101,6 +101,7 @@ async function main() {
     app.use('/api/coins', coinManagement_1.default);
     app.use('/api/user-actions', user_actions_1.default);
     app.use('/api/expenses', expenses_1.default);
+    app.use('/api', friends_1.friendRoutes);
     app.get('*', async function (req, res) {
         return res.sendFile(node_path_1.default.join(__dirname, '../public/index.html'));
     });
