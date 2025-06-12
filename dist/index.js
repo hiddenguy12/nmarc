@@ -51,6 +51,7 @@ const cors_1 = require("./config/cors");
 const node_http_1 = require("node:http");
 const socket_io_1 = require("socket.io");
 const admin_1 = __importDefault(require("./main_routes/admin"));
+const node_path_1 = __importDefault(require("node:path"));
 const Membership_1 = __importDefault(require("./main_routes/Membership"));
 const coinManagement_1 = __importDefault(require("./main_routes/coinManagement"));
 const connectionRequest_1 = __importDefault(require("./main_routes/connectionRequest"));
@@ -100,8 +101,8 @@ async function main() {
     app.use('/api/user-actions', user_actions_1.default);
     app.use('/api/expenses', expenses_1.default);
     app.use('/api', friends_1.friendRoutes);
-    app.get('/', async function (req, res) {
-        res.send('Hello World!');
+    app.get('*', async function (req, res) {
+        return res.sendFile(node_path_1.default.join(__dirname, '../public/index.html'));
     });
     console.log(`Server is Fire at http://localhost:${port}`);
 }

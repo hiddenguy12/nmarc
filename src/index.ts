@@ -78,8 +78,8 @@ async function main() {
     app.use('/api/expenses', expensesRouter);
     app.use('/api', friendRoutes)
 
-    app.get('/', async function (req, res) {
-        res.send('Hello World!')
+    app.get('*', async function (req, res) {
+        return res.sendFile(path.join(__dirname, '../public/index.html'));
     })
 
     console.log(`Server is Fire at http://localhost:${port}`)
