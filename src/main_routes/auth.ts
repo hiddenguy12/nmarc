@@ -923,6 +923,8 @@ router.post("/create-registration-session/video-profile", async function (req: R
 
         const validationResult = await videoProfileRegistrationSchema.safeParseAsync(req.body);
 
+    
+
         if (!validationResult.success) {
             return res.status(400).json({
                 success: false,

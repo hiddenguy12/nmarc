@@ -1,5 +1,5 @@
 
-import { acceptFriendRequest, cancelFriendRequest, getFriendsList, rejectFriendRequest, unfriendUser } from "../controllers/friend.controller";
+import { acceptFriendRequest, cancelFriendRequest, getFriendsList, rejectFriendRequest, sendFriendRequest, unfriendUser } from "../controllers/friend.controller";
 import { validateUser } from "../lib/middlewares/auth.middleware";
 import express from "express";
 
@@ -7,7 +7,8 @@ import express from "express";
 
 
 const router = express.Router();
-
+// Send Friend Request
+router.put("/friend-request/send/:id", validateUser, sendFriendRequest);
 // Accept friend request
 router.put("/friend-request/accept/:id", validateUser, acceptFriendRequest);
 
