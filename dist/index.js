@@ -67,8 +67,8 @@ const server = (0, node_http_1.createServer)(app).listen(port);
 const io = new socket_io_1.Server(server, {
     cors: {
         origin: '*',
-        methods: ['POST', 'GET', 'DELETE', 'PUT']
-    }
+        methods: ['POST', 'GET', 'DELETE', 'PUT'],
+    },
 });
 randomVideoCall_socket_1.randomVideoCallSocketService.getInstance(io.of('/random-video-call'));
 // configOnlineStatusSocket(io.of('/socket/online-status-management'))
@@ -101,8 +101,12 @@ async function main() {
     app.use('/api/user-actions', user_actions_1.default);
     app.use('/api/expenses', expenses_1.default);
     app.use('/api', friends_1.friendRoutes);
-    app.get('*', async function (req, res) {
-        return res.sendFile(node_path_1.default.join(__dirname, '../public/index.html'));
+    const publicPath = node_path_1.default.join(__dirname, '../public');
+    app.get('/', (req, res) => {
+        res.send('✅ API is working! Welcome to Matrimony Server.');
+    });
+    app.get('*', (req, res) => {
+        res.sendFile(node_path_1.default.join(publicPath, 'index.html'));
     });
     console.log(`Server is Fire at http://localhost:${port}`);
 }

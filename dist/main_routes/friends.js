@@ -8,6 +8,8 @@ const friend_controller_1 = require("../controllers/friend.controller");
 const auth_middleware_1 = require("../lib/middlewares/auth.middleware");
 const express_1 = __importDefault(require("express"));
 const router = express_1.default.Router();
+// Send Friend Request
+router.put("/friend-request/send/:id", auth_middleware_1.validateUser, friend_controller_1.sendFriendRequest);
 // Accept friend request
 router.put("/friend-request/accept/:id", auth_middleware_1.validateUser, friend_controller_1.acceptFriendRequest);
 // Reject friend request

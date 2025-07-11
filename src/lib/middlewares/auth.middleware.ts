@@ -21,7 +21,10 @@ export const extractBearerToken = (header: string | undefined): string | null =>
 export async function validateUser(req: Request | any, res: Response, next: NextFunction) :Promise<void | any> {
   try {
     const authHeader = req.headers.authorization;
+   
     const token = extractBearerToken(authHeader);
+
+    
 
     if (!token) {
       return res.status(401).json({
