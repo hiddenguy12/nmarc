@@ -19,6 +19,7 @@ const router = (0, express_1.Router)();
 router.use((0, rateRimiter_1.default)(120 * 1000, 120));
 router.post('/upload/image', multer_1.upload.single('image'), async function (req, res) {
     const file = req.file;
+    console.log(file);
     // Early return if no file
     if (!file) {
         return res.status(400).json({

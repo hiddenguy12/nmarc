@@ -10,7 +10,7 @@ exports.createImageAssetSchema = zod_1.z.object({
     name: zod_1.z.string()
         .min(1, 'Asset name is required')
         .max(255, 'Asset name too long')
-        .refine(name => /^[a-zA-Z0-9-_. ]+$/.test(name), {
+        .refine(name => /^[^\\/:*?"<>|]+$/.test(name), {
         message: 'Asset name contains invalid characters'
     }),
     asset_type: zod_1.z.enum([asset_1.AssetType.IMAGE, asset_1.AssetType.VIDEO, asset_1.AssetType.DOCUMENT, asset_1.AssetType.AUDIO]),
@@ -27,7 +27,7 @@ exports.updateAssetSchema = zod_1.z.object({
     name: zod_1.z.string()
         .min(1, 'Asset name is required')
         .max(255, 'Asset name too long')
-        .refine(name => /^[a-zA-Z0-9-_. ]+$/.test(name), {
+        .refine(name => /^[^\\/:*?"<>|]+$/.test(name), {
         message: 'Asset name contains invalid characters'
     })
         .optional(),

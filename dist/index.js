@@ -45,6 +45,7 @@ const search_1 = __importDefault(require("./main_routes/search"));
 const assets_1 = __importDefault(require("./main_routes/assets"));
 const profile_1 = __importDefault(require("./main_routes/profile"));
 const data_1 = __importDefault(require("./main_routes/data"));
+const post_1 = __importDefault(require("./main_routes/post"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const morgan_1 = __importDefault(require("morgan"));
 const cors_1 = require("./config/cors");
@@ -60,7 +61,6 @@ const expenses_1 = __importDefault(require("./main_routes/expenses"));
 const randomVideoCall_socket_1 = require("./sockets/randomVideoCall.socket");
 const notification_socket_1 = require("./sockets/notification.socket");
 const chat_messaging_socket_1 = __importDefault(require("./sockets/chat.messaging.socket"));
-const friends_1 = require("./main_routes/friends");
 const app = (0, express_1.default)();
 const port = Number(env_1.PORT ?? 4000);
 const server = (0, node_http_1.createServer)(app).listen(port);
@@ -100,7 +100,7 @@ async function main() {
     app.use('/api/coins', coinManagement_1.default);
     app.use('/api/user-actions', user_actions_1.default);
     app.use('/api/expenses', expenses_1.default);
-    app.use('/api', friends_1.friendRoutes);
+    app.use('/api/post', post_1.default);
     const publicPath = node_path_1.default.join(__dirname, '../public');
     app.get('/', (req, res) => {
         res.send('✅ API is working! Welcome to Matrimony Server.');

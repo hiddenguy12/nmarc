@@ -49,6 +49,8 @@ async function validateUser(req, res, next) {
         }
         req.authSession = session;
         req.bearerAccessToken = token;
+        // Attach user info for downstream use
+        req.user = { _id: session.value.userId };
         next();
         return;
     }
