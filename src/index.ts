@@ -15,6 +15,7 @@ import searchRouter from './main_routes/search';
 import assetsRouter from './main_routes/assets';
 import profileRouter from './main_routes/profile';
 import dataRouter from './main_routes/data';
+import postRouter from "./main_routes/post"
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import { cors } from './config/cors';
@@ -79,6 +80,7 @@ async function main() {
   app.use('/api/coins', coinManagementRouter);
   app.use('/api/user-actions', userActionsRouter);
   app.use('/api/expenses', expensesRouter);
+  app.use('/api/post', postRouter);
   const publicPath = path.join(__dirname, '../public');
 
   app.get('/', (req, res) => {

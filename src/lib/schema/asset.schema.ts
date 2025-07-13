@@ -10,7 +10,7 @@ export const createImageAssetSchema = z.object({
   name: z.string()
     .min(1, 'Asset name is required')
     .max(255, 'Asset name too long')
-    .refine(name => /^[a-zA-Z0-9-_. ]+$/.test(name), {
+    .refine(name => /^[^\\/:*?"<>|]+$/.test(name), {
       message: 'Asset name contains invalid characters'
     }),
   asset_type: z.enum([AssetType.IMAGE, AssetType.VIDEO, AssetType.DOCUMENT, AssetType.AUDIO]),
@@ -28,7 +28,7 @@ export const updateAssetSchema = z.object({
   name: z.string()
     .min(1, 'Asset name is required')
     .max(255, 'Asset name too long')
-    .refine(name => /^[a-zA-Z0-9-_. ]+$/.test(name), {
+    .refine(name => /^[^\\/:*?"<>|]+$/.test(name), {
       message: 'Asset name contains invalid characters'
     })
     .optional(),

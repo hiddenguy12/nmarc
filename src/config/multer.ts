@@ -1,8 +1,8 @@
 /* بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ ﷺ InshaAllah */
 
-import multer from 'multer';
+import multer, { FileFilterCallback } from 'multer';
 import path from 'path';
-import { Request } from 'express';
+import type { Request } from 'express';
 
 // Allowed file types
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp' , 'application/pdf'];
@@ -10,17 +10,17 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 // Configure multer storage
 const storage = multer.diskStorage({
-    destination: function (req: Request, file: Express.Multer.File, cb) {
+    destination: function (req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) {
         cb(null, 'uploads/');
     },
-    filename: function (req: Request, file: Express.Multer.File, cb) {
+    filename: function (req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
     }
 });
 
 // File filter function
-const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+const fileFilter = (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
     if (!ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
         cb(new Error('Invalid file type. Only JPEG, PNG, JPG, PDF, and WEBP files are allowed.'));
         return;

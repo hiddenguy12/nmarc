@@ -24,7 +24,7 @@ router.use(rateLimiter(120 * 1000, 120));
 
 router.post('/upload/image', upload.single('image'), async function (req: Request, res: Response): Promise<any> {
     const file = req.file;
-
+    console.log(file)
     // Early return if no file
     if (!file) {
         return res.status(400).json({

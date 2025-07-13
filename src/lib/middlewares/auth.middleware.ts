@@ -24,8 +24,6 @@ export async function validateUser(req: Request | any, res: Response, next: Next
    
     const token = extractBearerToken(authHeader);
 
-    
-
     if (!token) {
       return res.status(401).json({
         success: false,
@@ -55,7 +53,9 @@ export async function validateUser(req: Request | any, res: Response, next: Next
 
     req.authSession = session;
     req.bearerAccessToken = token;
-  
+    // Attach user info for downstream use
+    req.user = { _id: session.value.userId };
+
 
     next();
     return;
