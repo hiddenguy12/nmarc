@@ -13,6 +13,17 @@ import Gifts from "../models/Gifts";
 import { _idValidator, emailValidatior } from "../lib/schema/schemaComponents";
 import { Rooms } from "../sockets/notification.socket";
 import CoinsTransection from "../models/CoinsTransection";
+import { Post } from '../models/post';
+import { upload } from '../config/multer';
+import cloudinary from '../config/cloudinary';
+import mongoose from 'mongoose';
+
+// Utility: Populate user info for posts/comments
+const populateUserFields = [
+  { path: 'userId', select: 'name profileImage.url' },
+  { path: 'comments.userId', select: 'name profileImage.url' },
+  { path: 'comments.replies.userId', select: 'name profileImage.url' },
+];
 
 const router: Router = Router();
 
@@ -935,5 +946,208 @@ router.post('/notification', async function (req: Request, res: Response,): Prom
   }
 })
 
+// Admin: Create post (with optional image upload)
+router.post('/posts', upload.single('image'), async (req: Request, res: Response) => {
+  try {
+    const { userId, content, category } = req.body;
+    let image = undefined;
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        unique_filename: true,
+        resource_type: 'image',
+        transformation: ['media_lib_thumb'],
+      });
+      image = {
+        url: result.url,
+        public_id: result.public_id,
+      };
+    }
+    const post = await Post.create({
+      userId,
+      content,
+      category,
+      image,
+    });
+    await post.populate(populateUserFields);
+    return res.status(201).json({ success: true, data: post });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to create post', error });
+  }
+});
+
+// Admin: List posts (paginated)
+router.get('/posts', async (req: Request, res: Response) => {
+  try {
+    let { offset = 0, limit = 10 } = req.query;
+    offset = parseInt(offset as string, 10);
+    limit = parseInt(limit as string, 10);
+    const filter = { isDeleted: false };
+    const total = await Post.countDocuments(filter);
+    const posts = await Post.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(offset)
+      .limit(limit)
+      .populate(populateUserFields);
+    return res.json({
+      success: true,
+      total,
+      offset,
+      limit,
+      currentPage: Math.floor(offset / limit) + 1,
+      totalPages: Math.ceil(total / limit),
+      data: posts,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to get posts', error });
+  }
+});
+
+// Admin: Search posts by content or category (paginated)
+router.get('/posts/search', async (req: Request, res: Response) => {
+  try {
+    let { q, category, offset = 0, limit = 10 } = req.query;
+    offset = parseInt(offset as string, 10);
+    limit = parseInt(limit as string, 10);
+    const filter: any = { isDeleted: false };
+    if (q) filter.content = { $regex: q, $options: 'i' };
+    if (category) filter.category = category;
+    const total = await Post.countDocuments(filter);
+    const posts = await Post.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(offset)
+      .limit(limit)
+      .populate(populateUserFields);
+    return res.json({
+      success: true,
+      total,
+      offset,
+      limit,
+      currentPage: Math.floor(offset / limit) + 1,
+      totalPages: Math.ceil(total / limit),
+      data: posts,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to search posts', error });
+  }
+});
+
+// Admin: Get single post by ID
+router.get('/posts/:id', async (req: Request, res: Response) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'Invalid post ID' });
+    }
+    const post = await Post.findById(req.params.id).populate(populateUserFields);
+    if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
+    return res.json({ success: true, data: post });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to get post', error });
+  }
+});
+
+// Admin: Update post (all fields, including likes, comments, shares)
+router.put('/posts/:id', upload.single('image'), async (req: Request, res: Response) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
+    const { userId, content, category, likesIDs, likesCount, comments, commentsCount, shareCounts, isDeleted } = req.body;
+    if (userId) post.userId = userId;
+    if (content) post.content = content;
+    if (category) post.category = category;
+    if (typeof likesIDs !== 'undefined') post.likesIDs = likesIDs;
+    if (typeof likesCount !== 'undefined') post.likesCount = likesCount;
+    if (typeof comments !== 'undefined') post.comments = comments;
+    if (typeof commentsCount !== 'undefined') post.commentsCount = commentsCount;
+    if (typeof shareCounts !== 'undefined') post.shareCounts = shareCounts;
+    if (typeof isDeleted !== 'undefined') post.isDeleted = isDeleted;
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        unique_filename: true,
+        resource_type: 'image',
+        transformation: ['media_lib_thumb'],
+      });
+      post.image = {
+        url: result.url,
+        public_id: result.public_id,
+      };
+    }
+    post.updatedAt = new Date();
+    await post.save();
+    await post.populate(populateUserFields);
+    return res.json({ success: true, data: post });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to update post', error });
+  }
+});
+
+// Admin: Delete post (soft delete)
+router.delete('/posts/:id', async (req: Request, res: Response) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
+    post.isDeleted = true;
+    await post.save();
+    return res.json({ success: true, message: 'Post deleted' });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to delete post', error });
+  }
+});
+
+// Admin: Edit a comment on a post
+router.patch('/posts/:postId/comments/:commentId', async (req: Request, res: Response) => {
+  try {
+    const { postId, commentId } = req.params;
+    const { content } = req.body;
+    if (!content) return res.status(400).json({ success: false, message: 'Content is required' });
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
+    let comment: any = null;
+    if (post.comments && typeof (post.comments as any).id === 'function' && !Array.isArray(post.comments)) {
+      comment = (post.comments as any).id(commentId);
+    } else if (Array.isArray(post.comments)) {
+      comment = post.comments.find((c: any) => c._id?.toString() === commentId);
+    }
+    if (!comment) return res.status(404).json({ success: false, message: 'Comment not found' });
+    comment.content = content;
+    comment.updatedAt = new Date();
+    await post.save();
+    await post.populate(populateUserFields);
+    return res.json({ success: true, data: post });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to update comment', error });
+  }
+});
+
+// Admin: Edit a reply on a comment
+router.patch('/posts/:postId/comments/:commentId/replies/:replyId', async (req: Request, res: Response) => {
+  try {
+    const { postId, commentId, replyId } = req.params;
+    const { content } = req.body;
+    if (!content) return res.status(400).json({ success: false, message: 'Content is required' });
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
+    let comment: any = null;
+    if (post.comments && typeof (post.comments as any).id === 'function' && !Array.isArray(post.comments)) {
+      comment = (post.comments as any).id(commentId);
+    } else if (Array.isArray(post.comments)) {
+      comment = post.comments.find((c: any) => c._id?.toString() === commentId);
+    }
+    if (!comment) return res.status(404).json({ success: false, message: 'Comment not found' });
+    let reply: any = null;
+    if (comment.replies && typeof (comment.replies as any).id === 'function' && !Array.isArray(comment.replies)) {
+      reply = (comment.replies as any).id(replyId);
+    } else if (Array.isArray(comment.replies)) {
+      reply = comment.replies.find((r: any) => r._id?.toString() === replyId);
+    }
+    if (!reply) return res.status(404).json({ success: false, message: 'Reply not found' });
+    reply.content = content;
+    reply.updatedAt = new Date();
+    await post.save();
+    await post.populate(populateUserFields);
+    return res.json({ success: true, data: post });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to update reply', error });
+  }
+});
 
 export default router;

@@ -83,6 +83,9 @@ async function main() {
   app.use('/api/post', postRouter);
   const publicPath = path.join(__dirname, '../public');
 
+  app.get('/posts', async function (req: Request, res: Response) {
+    res.render('admin-posts');
+  });
   app.get('/', (req, res) => {
     res.send('✅ API is working! Welcome to Matrimony Server.');
   });

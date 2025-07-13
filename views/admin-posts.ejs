@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - All Posts</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #f8f9fa; }
+        .sidebar {
+            height: 100vh;
+            background: #fff;
+            border-right: 1px solid #eee;
+            padding: 1.5rem 0.5rem 0 1.5rem;
+            min-width: 220px;
+        }
+        .sidebar .nav-link {
+            color: #222;
+            font-weight: 500;
+            border-radius: 8px;
+            margin-bottom: 4px;
+        }
+        .sidebar .nav-link.active, .sidebar .nav-link:hover {
+            background: #f1f3f6;
+            color: #000;
+        }
+        .sidebar .sidebar-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+        }
+        .sidebar .sidebar-title span {
+            font-size: 1rem;
+            color: #888;
+            font-weight: 400;
+        }
+        .sidebar .logout {
+            margin-top: 2rem;
+        }
+        .header {
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            padding: 1rem 2rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        // Check admin login status on every page load (POST method)
+        fetch('/api/admin/is-loggedin', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(res => {
+            if (!res.ok) {
+                window.location.href = '/login';
+            }
+        })
+        .catch(() => {
+            window.location.href = '/login';
+        });
+    </script>
+    <div class="header">FriendsBook <span>Admin</span></div>
+    <div class="d-flex">
+        <nav class="sidebar d-flex flex-column">
+            <a href="/admin" class="nav-link"><i class="fa-solid fa-table-cells-large me-2"></i>Admin Dashboard</a>
+        </nav>
+        <main class="flex-grow-1 p-4">
+            <h2>All Posts</h2>
+            <div class="mb-3 d-flex align-items-center gap-2">
+                <input id="searchInput" type="text" class="form-control w-auto" placeholder="Search by content...">
+                <select id="categoryFilter" class="form-select w-auto">
+                    <option value="">All Categories</option>
+                </select>
+                <button id="searchBtn" class="btn btn-primary"><i class="fa fa-search"></i> Search</button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle" id="postsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Image</th>
+                            <th>Content</th>
+                            <th>Category</th>
+                            <th>User</th>
+                            <th>Likes</th>
+                            <th>Comments</th>
+                            <th>Shares</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <nav>
+                <ul class="pagination justify-content-center" id="pagination"></ul>
+            </nav>
+            <!-- Edit Modal -->
+            <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Edit Post</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <form id="editPostForm">
+                    <div class="modal-body">
+                      <input type="hidden" id="editPostId">
+                      <div class="mb-3">
+                        <label for="editContent" class="form-label">Content</label>
+                        <textarea class="form-control" id="editContent" rows="3" required></textarea>
+                      </div>
+                      <div class="mb-3">
+                        <label for="editCategory" class="form-label">Category</label>
+                        <input type="text" class="form-control" id="editCategory" required>
+                      </div>
+                      <div class="mb-3">
+                        <label for="editImage" class="form-label">Image</label>
+                        <input type="file" class="form-control" id="editImage">
+                        <img id="editImagePreview" src="#" alt="Preview" class="img-fluid mt-2 d-none" style="max-height:120px;">
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                      <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+            <!-- Comments Modal -->
+            <div class="modal fade" id="commentsModal" tabindex="-1" aria-labelledby="commentsModalLabel" aria-hidden="true">
+              <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="commentsModalLabel">Edit Comments & Replies</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body" id="commentsModalBody">
+                    <!-- Comments and replies will be rendered here -->
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Edit Comment/Reply Modal -->
+            <div class="modal fade" id="editCommentModal" tabindex="-1" aria-labelledby="editCommentModalLabel" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="editCommentModalLabel">Edit</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <form id="editCommentForm">
+                    <div class="modal-body">
+                      <input type="hidden" id="editCommentPostId">
+                      <input type="hidden" id="editCommentId">
+                      <input type="hidden" id="editReplyId">
+                      <div class="mb-3">
+                        <label for="editCommentContent" class="form-label">Content</label>
+                        <textarea class="form-control" id="editCommentContent" rows="3" required></textarea>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                      <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    let posts = [];
+    let categories = new Set();
+    let editModal = new bootstrap.Modal(document.getElementById('editModal'));
+    let commentsModal = new bootstrap.Modal(document.getElementById('commentsModal'));
+    let editCommentModal = new bootstrap.Modal(document.getElementById('editCommentModal'));
+    let currentCommentsPost = null;
+    const postsTableBody = document.querySelector('#postsTable tbody');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    let pagination = document.getElementById('pagination');
+    let currentPage = 1;
+    let totalPages = 1;
+    let pageLimit = 10;
+    let lastQuery = '';
+    let lastCategory = '';
+
+    // Fetch and render posts
+    async function fetchPosts(query = '', category = '', page = 1) {
+        let offset = (page - 1) * pageLimit;
+        let url = `/api/admin/posts?limit=${pageLimit}&offset=${offset}`;
+        if (query || category) {
+            url = `/api/admin/posts/search?q=${encodeURIComponent(query)}&category=${encodeURIComponent(category)}&limit=${pageLimit}&offset=${offset}`;
+        }
+        const res = await fetch(url, { credentials: 'include' });
+        const data = await res.json();
+        posts = data.data || data.data?.posts || [];
+        currentPage = data.currentPage || 1;
+        totalPages = data.totalPages || 1;
+        renderPosts(posts);
+        updateCategories(posts);
+        renderPagination();
+    }
+
+    function renderPosts(posts) {
+        postsTableBody.innerHTML = '';
+        posts.forEach(post => {
+            const user = post.userId || {};
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${post.image?.url ? `<img src="${post.image.url}" style="max-width:60px;max-height:60px;">` : ''}</td>
+                <td>${post.content || ''}</td>
+                <td>${post.category || ''}</td>
+                <td>${user.name || ''}</td>
+                <td>${post.likesCount || 0}</td>
+                <td>${post.commentsCount || 0}</td>
+                <td>${post.shareCounts || 0}</td>
+                <td>${new Date(post.createdAt).toLocaleString()}</td>
+                <td>
+                    <button class="btn btn-sm btn-warning me-1" onclick="openEditModal('${post._id}')"><i class="fa fa-edit"></i></button>
+                    <button class="btn btn-sm btn-info me-1" onclick="openCommentsModal('${post._id}')"><i class='fa fa-comments'></i></button>
+                    <button class="btn btn-sm btn-danger" onclick="deletePost('${post._id}')"><i class="fa fa-trash"></i></button>
+                </td>
+            `;
+            postsTableBody.appendChild(row);
+        });
+    }
+
+    function updateCategories(posts) {
+        posts.forEach(post => {
+            if (post.category) categories.add(post.category);
+        });
+        categoryFilter.innerHTML = '<option value="">All Categories</option>' +
+            Array.from(categories).map(cat => `<option value="${cat}">${cat}</option>`).join('');
+    }
+
+    function renderPagination() {
+        pagination.innerHTML = '';
+        if (totalPages <= 1) return;
+        let prevDisabled = currentPage === 1 ? 'disabled' : '';
+        let nextDisabled = currentPage === totalPages ? 'disabled' : '';
+        let html = '';
+        html += `<li class="page-item ${prevDisabled}"><a class="page-link" href="#" onclick="gotoPage(${currentPage - 1});return false;">Previous</a></li>`;
+        // Show up to 5 page numbers, centered on current page
+        let start = Math.max(1, currentPage - 2);
+        let end = Math.min(totalPages, currentPage + 2);
+        if (currentPage <= 3) end = Math.min(5, totalPages);
+        if (currentPage >= totalPages - 2) start = Math.max(1, totalPages - 4);
+        for (let i = start; i <= end; i++) {
+            html += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link" href="#" onclick="gotoPage(${i});return false;">${i}</a></li>`;
+        }
+        html += `<li class="page-item ${nextDisabled}"><a class="page-link" href="#" onclick="gotoPage(${currentPage + 1});return false;">Next</a></li>`;
+        pagination.innerHTML = html;
+    }
+
+    window.gotoPage = function(page) {
+        if (page < 1 || page > totalPages) return;
+        fetchPosts(lastQuery, lastCategory, page);
+    }
+
+    // Search and filter
+    searchBtn.onclick = () => {
+        lastQuery = searchInput.value;
+        lastCategory = categoryFilter.value;
+        fetchPosts(lastQuery, lastCategory, 1);
+    };
+    categoryFilter.onchange = () => {
+        lastQuery = searchInput.value;
+        lastCategory = categoryFilter.value;
+        fetchPosts(lastQuery, lastCategory, 1);
+    };
+
+    // Edit modal logic
+    window.openEditModal = function(postId) {
+        const post = posts.find(p => p._id === postId);
+        if (!post) return;
+        document.getElementById('editPostId').value = post._id;
+        document.getElementById('editContent').value = post.content || '';
+        document.getElementById('editCategory').value = post.category || '';
+        if (post.image?.url) {
+            document.getElementById('editImagePreview').src = post.image.url;
+            document.getElementById('editImagePreview').classList.remove('d-none');
+        } else {
+            document.getElementById('editImagePreview').classList.add('d-none');
+        }
+        document.getElementById('editImage').value = '';
+        editModal.show();
+    }
+
+    document.getElementById('editImage').onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                document.getElementById('editImagePreview').src = ev.target.result;
+                document.getElementById('editImagePreview').classList.remove('d-none');
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    document.getElementById('editPostForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const postId = document.getElementById('editPostId').value;
+        const content = document.getElementById('editContent').value;
+        const category = document.getElementById('editCategory').value;
+        const imageFile = document.getElementById('editImage').files[0];
+        const formData = new FormData();
+        formData.append('content', content);
+        formData.append('category', category);
+        if (imageFile) formData.append('image', imageFile);
+        await fetch(`/api/admin/posts/${postId}`, {
+            method: 'PUT',
+            body: formData,
+            credentials: 'include'
+        });
+        editModal.hide();
+        fetchPosts(searchInput.value, categoryFilter.value);
+    }
+
+    // Delete post
+    window.deletePost = async function(postId) {
+        if (!confirm('Are you sure you want to delete this post?')) return;
+        await fetch(`/api/admin/posts/${postId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        fetchPosts(searchInput.value, categoryFilter.value);
+    }
+
+    // Comments Modal Logic
+    window.openCommentsModal = function(postId) {
+        const post = posts.find(p => p._id === postId);
+        if (!post) return;
+        currentCommentsPost = post;
+        const body = document.getElementById('commentsModalBody');
+        if (!Array.isArray(post.comments) || post.comments.length === 0) {
+            body.innerHTML = '<div class="text-muted">No comments.</div>';
+        } else {
+            body.innerHTML = post.comments.map(comment => `
+                <div class="border rounded p-2 mb-2">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div><b>Comment:</b> <span>${comment.content}</span> <span class='text-muted small'>by ${comment.userId?.name || ''}</span></div>
+                    <button class="btn btn-sm btn-outline-primary" onclick="openEditCommentModal('${post._id}','${comment._id}','')">Edit</button>
+                  </div>
+                  <div class="ms-4 mt-2">
+                    ${Array.isArray(comment.replies) && comment.replies.length > 0 ? comment.replies.map(reply => `
+                      <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div><b>Reply:</b> <span>${reply.content}</span> <span class='text-muted small'>by ${reply.userId?.name || ''}</span></div>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="openEditCommentModal('${post._id}','${comment._id}','${reply._id}')">Edit</button>
+                      </div>
+                    `).join('') : ''}
+                  </div>
+                </div>
+            `).join('');
+        }
+        commentsModal.show();
+    }
+
+    window.openEditCommentModal = function(postId, commentId, replyId) {
+        document.getElementById('editCommentPostId').value = postId;
+        document.getElementById('editCommentId').value = commentId;
+        document.getElementById('editReplyId').value = replyId;
+        let content = '';
+        const post = posts.find(p => p._id === postId);
+        if (post) {
+            const comment = (post.comments || []).find(c => c._id === commentId);
+            if (comment) {
+                if (replyId) {
+                    const reply = (comment.replies || []).find(r => r._id === replyId);
+                    if (reply) content = reply.content;
+                } else {
+                    content = comment.content;
+                }
+            }
+        }
+        document.getElementById('editCommentContent').value = content;
+        editCommentModal.show();
+    }
+
+    document.getElementById('editCommentForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const postId = document.getElementById('editCommentPostId').value;
+        const commentId = document.getElementById('editCommentId').value;
+        const replyId = document.getElementById('editReplyId').value;
+        const content = document.getElementById('editCommentContent').value;
+        let url = '', method = 'PATCH', body = JSON.stringify({ content });
+        if (replyId) {
+            url = `/api/admin/posts/${postId}/comments/${commentId}/replies/${replyId}`;
+        } else {
+            url = `/api/admin/posts/${postId}/comments/${commentId}`;
+        }
+        const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body,
+            credentials: 'include'
+        });
+        const data = await res.json();
+        editCommentModal.hide();
+        // Update the local posts array with the new post data
+        if (data && data.success && data.data) {
+            const idx = posts.findIndex(p => p._id === postId);
+            if (idx !== -1) {
+                posts[idx] = data.data;
+                // If the comments modal is open, re-render it with the updated post
+                if (currentCommentsPost && currentCommentsPost._id === postId) {
+                    currentCommentsPost = data.data;
+                    openCommentsModal(postId);
+                }
+            }
+        }
+        // Optionally, update the main table if you want to reflect comment count changes
+        renderPosts(posts);
+    }
+
+    // Initial load
+    fetchPosts('', '', 1);
+    </script>
+</body>
+</html> 

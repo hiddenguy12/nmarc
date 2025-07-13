@@ -102,6 +102,9 @@ async function main() {
     app.use('/api/expenses', expenses_1.default);
     app.use('/api/post', post_1.default);
     const publicPath = node_path_1.default.join(__dirname, '../public');
+    app.get('/posts', async function (req, res) {
+        res.render('admin-posts');
+    });
     app.get('/', (req, res) => {
         res.send('✅ API is working! Welcome to Matrimony Server.');
     });
