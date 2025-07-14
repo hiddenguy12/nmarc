@@ -19,6 +19,9 @@ import { log } from "console";
 import { partnerPreferenceSchema } from "../lib/schema/partnerPreference.schema";
 import VideoProfile from "../models/VideoProfile";
 import CoinsTransection from "../models/CoinsTransection";
+import { upload } from '../config/multer';
+import cloudinary from '../config/cloudinary';
+import fs from 'fs';
 const router: Router = Router();
 
 // Constants
@@ -64,7 +67,7 @@ router.get('/user-details/video-profile', validateVideoProfile, async function (
 });
 
 
-router.put('/user-details/video-profile', validateVideoProfile, async function (req: Request, res: Response): Promise<Response | any> {
+router.put('/user-details/video-profile', validateVideoProfile, upload.single('profileImage'), async function (req: Request, res: Response): Promise<Response | any> {
     try {
         // Define validation schema with all fields as optional
         const updateSchema = z.object({
@@ -83,20 +86,24 @@ router.put('/user-details/video-profile', validateVideoProfile, async function (
             profileImage: z.object({ url: z.string().url(), id: z.string().uuid() }).optional(),
         });
 
-        // Validate request body
-        const validatedData = updateSchema.parse(req.body);
+        // Validate request body (ignore profileImage if file is uploaded)
+        let validatedData: any = {};
+        if (req.file) {
+            // If file is uploaded, skip profileImage in body
+            const { profileImage, ...rest } = req.body;
+            validatedData = updateSchema.omit({ profileImage: true }).parse(rest);
+        } else {
+            validatedData = updateSchema.parse(req.body);
+        }
 
         // Find fields to update
         const updateData: any = {};
-
-        // Map validated fields to updateData
         if (validatedData.name) updateData.name = validatedData.name;
         if (validatedData.gender) updateData.gender = validatedData.gender;
         if (validatedData.status) updateData.status = validatedData.status;
         if (validatedData.dateOfBirth) updateData.dateOfBirth = validatedData.dateOfBirth;
         if (validatedData.age) updateData.age = validatedData.age;
         if (validatedData.languages) updateData.languages = validatedData.languages;
-        if (validatedData.profileImage) updateData.profileImage = validatedData.profileImage;
         if (validatedData.coverImage) updateData.coverImage = validatedData.coverImage;
         // Handle nested location object
         if (validatedData.location) {
@@ -107,6 +114,27 @@ router.put('/user-details/video-profile', validateVideoProfile, async function (
                 updateData.location.lat = validatedData.location.lat;
             if (validatedData.location.long !== undefined)
                 updateData.location.long = validatedData.location.long;
+        }
+
+        // Handle profileImage upload
+        let newProfileImage = null;
+        if (req.file) {
+            // Upload to Cloudinary
+            const result = await cloudinary.uploader.upload(req.file.path, {
+                folder: 'video-profiles',
+                public_id: req.videoProfile._id.toString() + '-' + Date.now(),
+                overwrite: true,
+                resource_type: 'image',
+            });
+            // Remove local file
+            fs.unlinkSync(req.file.path);
+            newProfileImage = {
+                url: result.secure_url,
+                id: result.public_id
+            };
+            updateData.profileImage = newProfileImage;
+        } else if (validatedData.profileImage) {
+            updateData.profileImage = validatedData.profileImage;
         }
 
         // Update lastActive timestamp
@@ -141,7 +169,7 @@ router.put('/user-details/video-profile', validateVideoProfile, async function (
                 _id: updatedProfile._id,
                 languages: updateData.languages && updatedProfile.languages,
                 lastActive: updateData.lastActive && updatedProfile.lastActive,
-                profileImage: updateData.profileImage && updatedProfile.profileImage,
+                profileImage: updatedProfile.profileImage, // Always return the latest profileImage
                 coverImage: updateData.coverImage && updatedProfile.coverImage,
             }
         });

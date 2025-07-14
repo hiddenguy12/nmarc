@@ -131,4 +131,72 @@ router.post('/phone-view/:requested_profile_id', auth_middleware_1.validateUser,
         });
     }
 });
+/**
+ * User Search & Filter API
+ * GET /search-users?name=...&gender=...&religion=...&age=...&page=...&limit=...
+ * - 'name' is a case-insensitive partial match (search)
+ * - 'gender', 'religion', 'age' are filters (exact match)
+ * - All can be used together or separately
+ */
+router.get('/search-users', async function (req, res) {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
+        // Build query
+        const filter = {};
+        // Name search (case-insensitive, partial)
+        if (req.query.name && typeof req.query.name === 'string') {
+            filter.name = { $regex: req.query.name, $options: 'i' };
+        }
+        // Gender filter
+        if (req.query.gender && typeof req.query.gender === 'string') {
+            filter.gender = req.query.gender;
+        }
+        // Religion filter
+        if (req.query.religion && typeof req.query.religion === 'string') {
+            filter.religion = req.query.religion;
+        }
+        // Age filter
+        if (req.query.age && !isNaN(Number(req.query.age))) {
+            filter.age = Number(req.query.age);
+        }
+        // Find users
+        const users = await user_1.User.find(filter)
+            .select('name _id email profileImage gender age religion onlineStatus')
+            .skip(skip)
+            .limit(limit)
+            .lean();
+        const totalUsers = await user_1.User.countDocuments(filter);
+        const totalPages = Math.ceil(totalUsers / limit);
+        return res.status(200).json({
+            success: true,
+            data: {
+                users,
+                pagination: {
+                    currentPage: page,
+                    pageSize: limit,
+                    totalPages,
+                    totalUsers,
+                    hasNextPage: page < totalPages,
+                    hasPrevPage: page > 1
+                },
+                filter: {
+                    name: req.query.name,
+                    gender: req.query.gender,
+                    religion: req.query.religion,
+                    age: req.query.age ? Number(req.query.age) : undefined
+                }
+            }
+        });
+    }
+    catch (error) {
+        console.error('[User Search API error]', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            data: null
+        });
+    }
+});
 exports.default = router;

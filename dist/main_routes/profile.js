@@ -15,6 +15,9 @@ const updateUser_schema_1 = require("../lib/schema/updateUser.schema");
 const membershipRequest_1 = require("../models/membershipRequest");
 const partnerPreference_schema_1 = require("../lib/schema/partnerPreference.schema");
 const VideoProfile_1 = __importDefault(require("../models/VideoProfile"));
+const multer_1 = require("../config/multer");
+const cloudinary_1 = __importDefault(require("../config/cloudinary"));
+const fs_1 = __importDefault(require("fs"));
 const router = (0, express_1.Router)();
 // Constants
 const RATE_LIMIT_WINDOW_MS = 120 * 1000; // 2 minutes
@@ -52,7 +55,7 @@ router.get('/user-details/video-profile', auth_middleware_1.validateVideoProfile
         });
     }
 });
-router.put('/user-details/video-profile', auth_middleware_1.validateVideoProfile, async function (req, res) {
+router.put('/user-details/video-profile', auth_middleware_1.validateVideoProfile, multer_1.upload.single('profileImage'), async function (req, res) {
     try {
         // Define validation schema with all fields as optional
         const updateSchema = zod_1.z.object({
@@ -70,11 +73,18 @@ router.put('/user-details/video-profile', auth_middleware_1.validateVideoProfile
             coverImage: zod_1.z.object({ url: zod_1.z.string().url(), id: zod_1.z.string().uuid() }).optional(),
             profileImage: zod_1.z.object({ url: zod_1.z.string().url(), id: zod_1.z.string().uuid() }).optional(),
         });
-        // Validate request body
-        const validatedData = updateSchema.parse(req.body);
+        // Validate request body (ignore profileImage if file is uploaded)
+        let validatedData = {};
+        if (req.file) {
+            // If file is uploaded, skip profileImage in body
+            const { profileImage, ...rest } = req.body;
+            validatedData = updateSchema.omit({ profileImage: true }).parse(rest);
+        }
+        else {
+            validatedData = updateSchema.parse(req.body);
+        }
         // Find fields to update
         const updateData = {};
-        // Map validated fields to updateData
         if (validatedData.name)
             updateData.name = validatedData.name;
         if (validatedData.gender)
@@ -87,8 +97,6 @@ router.put('/user-details/video-profile', auth_middleware_1.validateVideoProfile
             updateData.age = validatedData.age;
         if (validatedData.languages)
             updateData.languages = validatedData.languages;
-        if (validatedData.profileImage)
-            updateData.profileImage = validatedData.profileImage;
         if (validatedData.coverImage)
             updateData.coverImage = validatedData.coverImage;
         // Handle nested location object
@@ -101,6 +109,27 @@ router.put('/user-details/video-profile', auth_middleware_1.validateVideoProfile
                 updateData.location.lat = validatedData.location.lat;
             if (validatedData.location.long !== undefined)
                 updateData.location.long = validatedData.location.long;
+        }
+        // Handle profileImage upload
+        let newProfileImage = null;
+        if (req.file) {
+            // Upload to Cloudinary
+            const result = await cloudinary_1.default.uploader.upload(req.file.path, {
+                folder: 'video-profiles',
+                public_id: req.videoProfile._id.toString() + '-' + Date.now(),
+                overwrite: true,
+                resource_type: 'image',
+            });
+            // Remove local file
+            fs_1.default.unlinkSync(req.file.path);
+            newProfileImage = {
+                url: result.secure_url,
+                id: result.public_id
+            };
+            updateData.profileImage = newProfileImage;
+        }
+        else if (validatedData.profileImage) {
+            updateData.profileImage = validatedData.profileImage;
         }
         // Update lastActive timestamp
         updateData.lastActive = new Date();
@@ -127,7 +156,7 @@ router.put('/user-details/video-profile', auth_middleware_1.validateVideoProfile
                 _id: updatedProfile._id,
                 languages: updateData.languages && updatedProfile.languages,
                 lastActive: updateData.lastActive && updatedProfile.lastActive,
-                profileImage: updateData.profileImage && updatedProfile.profileImage,
+                profileImage: updatedProfile.profileImage, // Always return the latest profileImage
                 coverImage: updateData.coverImage && updatedProfile.coverImage,
             }
         });
