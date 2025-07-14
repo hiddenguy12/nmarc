@@ -45,6 +45,43 @@
             font-size: 1.25rem;
             font-weight: 600;
         }
+        /* Responsive Table Enhancements */
+        @media (max-width: 767.98px) {
+            .table-responsive-stack tr {
+                display: flex;
+                flex-direction: column;
+                border-bottom: 1px solid #dee2e6;
+                margin-bottom: 1rem;
+            }
+            .table-responsive-stack td, .table-responsive-stack th {
+                display: flex;
+                width: 100%;
+                align-items: center;
+                padding: 0.5rem 0.75rem;
+                border: none;
+            }
+            .table-responsive-stack td:before {
+                content: attr(data-label);
+                flex: 0 0 120px;
+                font-weight: 600;
+                color: #888;
+                margin-right: 1rem;
+            }
+            .table-responsive-stack thead {
+                display: none;
+            }
+        }
+        /* Modal full screen on small devices */
+        @media (max-width: 575.98px) {
+            .modal-fullscreen-sm-down {
+                width: 100vw;
+                min-height: 100vh;
+                margin: 0;
+                top: 0;
+                left: 0;
+                border-radius: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -81,7 +118,7 @@
                 <button id="searchBtn" class="btn btn-primary"><i class="fa fa-search"></i> Search</button>
             </div>
             <div class="table-responsive">
-                <table class="table table-bordered table-hover align-middle" id="postsTable">
+                <table class="table table-bordered table-hover align-middle table-responsive-stack" id="postsTable">
                     <thead class="table-light">
                         <tr>
                             <th>Image</th>
@@ -103,7 +140,7 @@
             </nav>
             <!-- Edit Modal -->
             <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-              <div class="modal-dialog">
+              <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
                 <div class="modal-content">
                   <div class="modal-header">
                     <h5 class="modal-title" id="editModalLabel">Edit Post</h5>
@@ -136,7 +173,7 @@
             </div>
             <!-- Comments Modal -->
             <div class="modal fade" id="commentsModal" tabindex="-1" aria-labelledby="commentsModalLabel" aria-hidden="true">
-              <div class="modal-dialog modal-lg">
+              <div class="modal-dialog modal-lg modal-dialog-centered modal-fullscreen-sm-down">
                 <div class="modal-content">
                   <div class="modal-header">
                     <h5 class="modal-title" id="commentsModalLabel">Edit Comments & Replies</h5>
@@ -150,7 +187,7 @@
             </div>
             <!-- Edit Comment/Reply Modal -->
             <div class="modal fade" id="editCommentModal" tabindex="-1" aria-labelledby="editCommentModalLabel" aria-hidden="true">
-              <div class="modal-dialog">
+              <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
                 <div class="modal-content">
                   <div class="modal-header">
                     <h5 class="modal-title" id="editCommentModalLabel">Edit</h5>
@@ -218,15 +255,15 @@
             const user = post.userId || {};
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${post.image?.url ? `<img src="${post.image.url}" style="max-width:60px;max-height:60px;">` : ''}</td>
-                <td>${post.content || ''}</td>
-                <td>${post.category || ''}</td>
-                <td>${user.name || ''}</td>
-                <td>${post.likesCount || 0}</td>
-                <td>${post.commentsCount || 0}</td>
-                <td>${post.shareCounts || 0}</td>
-                <td>${new Date(post.createdAt).toLocaleString()}</td>
-                <td>
+                <td data-label="Image">${post.image?.url ? `<img src="${post.image.url}" style="max-width:60px;max-height:60px;">` : ''}</td>
+                <td data-label="Content">${post.content || ''}</td>
+                <td data-label="Category">${post.category || ''}</td>
+                <td data-label="User">${user.name || ''}</td>
+                <td data-label="Likes">${post.likesCount || 0}</td>
+                <td data-label="Comments">${post.commentsCount || 0}</td>
+                <td data-label="Shares">${post.shareCounts || 0}</td>
+                <td data-label="Created">${new Date(post.createdAt).toLocaleString()}</td>
+                <td data-label="Actions">
                     <button class="btn btn-sm btn-warning me-1" onclick="openEditModal('${post._id}')"><i class="fa fa-edit"></i></button>
                     <button class="btn btn-sm btn-info me-1" onclick="openCommentsModal('${post._id}')"><i class='fa fa-comments'></i></button>
                     <button class="btn btn-sm btn-danger" onclick="deletePost('${post._id}')"><i class="fa fa-trash"></i></button>
