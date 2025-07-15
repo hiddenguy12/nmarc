@@ -1,6 +1,7 @@
 /* بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ ﷺ InshaAllah */
 
 import crypto , { randomUUID as uuidv4 } from 'crypto';
+import axios from 'axios';
 
 
 /**
@@ -79,5 +80,45 @@ export function verifySecurityToken(token: string): {
     return { valid: true, userId, roomId };
   } catch (error) {
     return { valid: false };
+  }
+}
+
+// Utility: Extract YouTube video ID from a string
+export function extractYouTubeVideoId(text: string): string | null {
+  // Regex for YouTube URLs
+  const regex = /(?:https?:\/\/(?:www\.|m\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/))([\w-]{11})/;
+  const match = text.match(regex);
+  return match ? match[1] : null;
+}
+
+// Utility: Fetch YouTube video metadata using YouTube Data API v3
+export async function fetchYouTubeMetadata(videoId: string): Promise<{
+  videoId: string;
+  url: string;
+  title: string;
+  description: string;
+  thumbnail: string;
+  channelTitle: string;
+  publishedAt: string;
+} | null> {
+  const apiKey = process.env.YOUTUBE_API_KEY;
+  if (!apiKey) throw new Error('YOUTUBE_API_KEY is not set in environment variables');
+  const apiUrl = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&key=${apiKey}&part=snippet`;
+  try {
+    const response = await axios.get(apiUrl);
+    const item = response.data.items && response.data.items[0];
+    if (!item) return null;
+    const snippet = item.snippet;
+    return {
+      videoId,
+      url: `https://www.youtube.com/watch?v=${videoId}`,
+      title: snippet.title,
+      description: snippet.description,
+      thumbnail: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url || '',
+      channelTitle: snippet.channelTitle,
+      publishedAt: snippet.publishedAt,
+    };
+  } catch (error) {
+    return null;
   }
 }

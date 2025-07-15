@@ -5,6 +5,7 @@ import cloudinary from '../config/cloudinary';
 import { validateUser } from '../lib/middlewares/auth.middleware';
 import { User } from '../models/user';
 import mongoose from 'mongoose';
+import { extractYouTubeVideoId, fetchYouTubeMetadata } from '../lib/core/videoUtils';
 
 const router = Router();
 
@@ -39,11 +40,18 @@ router.post('/', validateUser, upload.single('image'), async (req: Request, res:
         public_id: result.public_id,
       };
     }
+    // Detect YouTube link and fetch metadata
+    let youtubeMeta = undefined;
+    const videoId = extractYouTubeVideoId(content || '');
+    if (videoId) {
+      youtubeMeta = await fetchYouTubeMetadata(videoId);
+    }
     const post = await Post.create({
       userId,
       content,
       category,
       image,
+      youtubeMeta,
     });
     await post.populate(populateUserFields);
     return res.status(201).json({ success: true, data: post });
@@ -115,6 +123,15 @@ router.put('/:id', validateUser, upload.single('image'), async (req: Request, re
         url: result.url,
         public_id: result.public_id,
       };
+    }
+    // Detect YouTube link and fetch metadata on update
+    if (content) {
+      const videoId = extractYouTubeVideoId(content);
+      if (videoId) {
+        post.youtubeMeta = await fetchYouTubeMetadata(videoId);
+      } else {
+        post.youtubeMeta = undefined;
+      }
     }
     post.updatedAt = new Date();
     await post.save();

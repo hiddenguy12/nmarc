@@ -27,6 +27,16 @@ const postSchema = new Schema({
     public_id: { type: String },
     assetId: { type: Types.ObjectId, ref: 'Asset' },
   },
+  // Add YouTube metadata field
+  youtubeMeta: {
+    videoId: { type: String },
+    url: { type: String },
+    title: { type: String },
+    description: { type: String },
+    thumbnail: { type: String },
+    channelTitle: { type: String },
+    publishedAt: { type: Date },
+  },
   likesIDs: [{ type: Types.ObjectId, ref: 'User' }],
   likesCount: { type: Number, default: 0 },
   comments: [commentSchema],
