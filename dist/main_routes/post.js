@@ -9,6 +9,7 @@ const multer_1 = require("../config/multer");
 const cloudinary_1 = __importDefault(require("../config/cloudinary"));
 const auth_middleware_1 = require("../lib/middlewares/auth.middleware");
 const mongoose_1 = __importDefault(require("mongoose"));
+const videoUtils_1 = require("../lib/core/videoUtils");
 const router = (0, express_1.Router)();
 // Utility: Populate user info for posts/comments
 const populateUserFields = [
@@ -40,11 +41,18 @@ router.post('/', auth_middleware_1.validateUser, multer_1.upload.single('image')
                 public_id: result.public_id,
             };
         }
+        // Detect YouTube link and fetch metadata
+        let youtubeMeta = undefined;
+        const videoId = (0, videoUtils_1.extractYouTubeVideoId)(content || '');
+        if (videoId) {
+            youtubeMeta = await (0, videoUtils_1.fetchYouTubeMetadata)(videoId);
+        }
         const post = await post_1.Post.create({
             userId,
             content,
             category,
             image,
+            youtubeMeta,
         });
         await post.populate(populateUserFields);
         return res.status(201).json({ success: true, data: post });
@@ -122,6 +130,16 @@ router.put('/:id', auth_middleware_1.validateUser, multer_1.upload.single('image
                 url: result.url,
                 public_id: result.public_id,
             };
+        }
+        // Detect YouTube link and fetch metadata on update
+        if (content) {
+            const videoId = (0, videoUtils_1.extractYouTubeVideoId)(content);
+            if (videoId) {
+                post.youtubeMeta = await (0, videoUtils_1.fetchYouTubeMetadata)(videoId);
+            }
+            else {
+                post.youtubeMeta = undefined;
+            }
         }
         post.updatedAt = new Date();
         await post.save();

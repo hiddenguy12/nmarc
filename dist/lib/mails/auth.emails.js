@@ -50,11 +50,11 @@ async function registrationOtpEmail(otp, email) {
             subject: `Registration OTP - FriendsBook`,
             html: generateEmailTemplate(content),
         });
-        console.log('Registration OTP email sent:', info.messageId);
+        console.log(`[Email Success] Registration OTP sent to: ${email} | Message ID: ${info.messageId}`);
         return true;
     }
     catch (error) {
-        console.error('Error sending Registration OTP email:', error);
+        console.error(`[Email Error] Failed to send Registration OTP to: ${email} | Subject: Registration OTP - FriendsBook | Error:`, error);
         return false;
     }
 }
@@ -75,11 +75,11 @@ async function registrationSuccessEmail(email) {
             subject: `Registration Successful - FriendsBook`,
             html: generateEmailTemplate(content),
         });
-        console.log('Registration Success email sent:', info.messageId);
+        console.log(`[Email Success] Registration Success sent to: ${email} | Message ID: ${info.messageId}`);
         return true;
     }
     catch (error) {
-        console.error('Error sending Registration Success email:', error);
+        console.error(`[Email Error] Failed to send Registration Success to: ${email} | Subject: Registration Successful - FriendsBook | Error:`, error);
         return false;
     }
 }
@@ -102,11 +102,11 @@ async function forgotPasswordOtpEmail(otp, email) {
             subject: `Password Reset - FriendsBook`,
             html: generateEmailTemplate(content),
         });
-        console.log('Forgot Password OTP email sent:', info.messageId);
+        console.log(`[Email Success] Forgot Password OTP sent to: ${email} | Message ID: ${info.messageId}`);
         return true;
     }
     catch (error) {
-        console.error('Error sending Forgot Password OTP email:', error);
+        console.error(`[Email Error] Failed to send Forgot Password OTP to: ${email} | Subject: Password Reset - FriendsBook | Error:`, error);
         return false;
     }
 }

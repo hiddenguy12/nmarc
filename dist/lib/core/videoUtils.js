@@ -33,12 +33,18 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateRoomToken = generateRoomToken;
 exports.getTurnCredentials = getTurnCredentials;
 exports.generateSecurityToken = generateSecurityToken;
 exports.verifySecurityToken = verifySecurityToken;
+exports.extractYouTubeVideoId = extractYouTubeVideoId;
+exports.fetchYouTubeMetadata = fetchYouTubeMetadata;
 const crypto_1 = __importStar(require("crypto"));
+const axios_1 = __importDefault(require("axios"));
 /**
  * Generate a unique room token for the video call
  * This is a simplified version. In production, you might want to:
@@ -103,5 +109,38 @@ function verifySecurityToken(token) {
     }
     catch (error) {
         return { valid: false };
+    }
+}
+// Utility: Extract YouTube video ID from a string
+function extractYouTubeVideoId(text) {
+    // Regex for YouTube URLs
+    const regex = /(?:https?:\/\/(?:www\.|m\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/))([\w-]{11})/;
+    const match = text.match(regex);
+    return match ? match[1] : null;
+}
+// Utility: Fetch YouTube video metadata using YouTube Data API v3
+async function fetchYouTubeMetadata(videoId) {
+    const apiKey = process.env.YOUTUBE_API_KEY;
+    if (!apiKey)
+        throw new Error('YOUTUBE_API_KEY is not set in environment variables');
+    const apiUrl = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&key=${apiKey}&part=snippet`;
+    try {
+        const response = await axios_1.default.get(apiUrl);
+        const item = response.data.items && response.data.items[0];
+        if (!item)
+            return null;
+        const snippet = item.snippet;
+        return {
+            videoId,
+            url: `https://www.youtube.com/watch?v=${videoId}`,
+            title: snippet.title,
+            description: snippet.description,
+            thumbnail: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url || '',
+            channelTitle: snippet.channelTitle,
+            publishedAt: snippet.publishedAt,
+        };
+    }
+    catch (error) {
+        return null;
     }
 }

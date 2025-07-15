@@ -11,19 +11,16 @@ const env_1 = require("./env");
 const transporter = nodemailer_1.default.createTransport({
     host: env_1.SMTP_HOST,
     port: Number(env_1.SMTP_PORT),
-    // service: SMTP_HOST,
-    secure: false,
+    secure: env_1.SMTP_SECURE === 'true', // true for 465, false for other ports
     auth: {
-        user: env_1.SMTP_USERNAME,
-        pass: env_1.SMTP_PASSWORD,
+        user: env_1.SMTP_USER,
+        pass: env_1.SMTP_PASS,
     },
     tls: {
         rejectUnauthorized: false,
-        ciphers: 'SSLv3'
     },
     connectionTimeout: 10000,
-    dnsTimeout: 3000,
-    socketTimeout: 3000,
-    greetingTimeout: 3000
+    greetingTimeout: 5000,
+    socketTimeout: 5000,
 });
 exports.default = transporter;
