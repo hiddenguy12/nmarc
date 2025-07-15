@@ -34,9 +34,9 @@ export const COMPANY_CONTACT_PHONE: ENV_VALUE = process.env.COMPANY_CONTACT_PHON
 // SMTP Configuration
 export const SMTP_HOST: ENV_VALUE = process.env.SMTP_HOST;
 export const SMTP_PORT: ENV_VALUE = process.env.SMTP_PORT;
-export const SMTP_USERNAME: ENV_VALUE = process.env.SMTP_USERNAME;
-export const SMTP_PASSWORD: ENV_VALUE = process.env.SMTP_PASSWORD;
-export const SMTP_API_KEY: ENV_VALUE = process.env.SMTP_API_KEY;
+export const SMTP_USER: ENV_VALUE = process.env.SMTP_USER;
+export const SMTP_PASS: ENV_VALUE = process.env.SMTP_PASS;
+export const SMTP_SECURE: ENV_VALUE = process.env.SMTP_SECURE;
 
 // Email Accent Colors
 export const EMAIL_PRIMARY_COLOR = '#025EB1';

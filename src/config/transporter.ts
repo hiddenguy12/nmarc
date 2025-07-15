@@ -2,28 +2,22 @@
 بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ  ﷺ InshaAllah
 */
 import nodemailer from 'nodemailer';
-import {SMTP_HOST, SMTP_PASSWORD, SMTP_PORT, SMTP_USERNAME , SMTP_API_KEY} from './env';
-import { MailOptions } from 'nodemailer/lib/ses-transport';
+import { SMTP_HOST, SMTP_PASS, SMTP_PORT, SMTP_USER, SMTP_SECURE } from './env';
 
 const transporter = nodemailer.createTransport({
     host: SMTP_HOST,
     port: Number(SMTP_PORT),
-    // service: SMTP_HOST,
-    secure: false,
+    secure: SMTP_SECURE === 'true', // true for 465, false for other ports
     auth: {
-        user: SMTP_USERNAME,
-        pass: SMTP_PASSWORD,
+        user: SMTP_USER,
+        pass: SMTP_PASS,
     },
     tls: {
         rejectUnauthorized: false,
-        ciphers:'SSLv3'
     },
-    connectionTimeout: 10000, 
-    dnsTimeout : 3000,
-    socketTimeout : 3000,
-    greetingTimeout : 3000
-})
-
-
+    connectionTimeout: 10000,
+    greetingTimeout: 5000,
+    socketTimeout: 5000,
+});
 
 export default transporter; 
