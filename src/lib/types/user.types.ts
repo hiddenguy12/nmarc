@@ -420,6 +420,15 @@ export interface IUserMembership {
   };
 }
 
+export interface IUserCoinHistoryEntry {
+  userId: Types.ObjectId;
+  status: 'sent' | 'received';
+  giftId: Types.ObjectId;
+  coinAmount: number;
+  coinName: string;
+  date: Date;
+}
+
 export interface IUser extends Document {
   // Basic Profile Information
   mid: string; // Unique matrimony ID
@@ -474,6 +483,10 @@ export interface IUser extends Document {
 
   // Membership Management
   membership?: IUserMembership; // Premium membership details
+
+  // Coin System
+  totalCoin: number;
+  coinHistory: IUserCoinHistoryEntry[];
 
   // connections
   connections: mongoose.Types.ObjectId[];

@@ -9,6 +9,7 @@ import { ProfileView } from "../models/ProfileView";
 import { User } from "../models/user";
 import { MembershipRequest } from "../models/membershipRequest";
 import { ShortList } from "../models/ShortListedProfiles";
+import Gifts from "../models/Gifts";
 
 const router = Router();
 
@@ -208,6 +209,94 @@ router.get('/search-users', async function (req, res) {
             message: 'Internal server error',
             data: null
         });
+    }
+});
+
+/**
+ * Send Gift API
+ * POST /send-gift
+ * Body: { receiverId: string, giftId: string }
+ * - Decreases sender's totalCoin, increases receiver's totalCoin
+ * - Adds coinHistory entry for both users
+ */
+router.post('/send-gift', validateUser, async function (req, res) {
+    try {
+        const senderId = req.authSession?.value.userId;
+        const { receiverId, giftId } = req.body;
+        if (!senderId || !receiverId || !giftId) {
+            return res.status(400).json({ success: false, message: 'Missing required fields.' });
+        }
+        if (senderId === receiverId) {
+            return res.status(400).json({ success: false, message: 'Cannot send gift to yourself.' });
+        }
+        // Fetch sender, receiver, and gift
+        const [sender, receiver, gift] = await Promise.all([
+            User.findById(senderId),
+            User.findById(receiverId),
+            Gifts.findById(giftId)
+        ]);
+        if (!sender || !receiver || !gift) {
+            return res.status(404).json({ success: false, message: 'Sender, receiver, or gift not found.' });
+        }
+        if (sender.totalCoin < gift.coins) {
+            return res.status(400).json({ success: false, message: 'Insufficient coins.' });
+        }
+        // Prepare coin history entries
+        const now = new Date();
+        const senderHistory = {
+            userId: receiver._id,
+            status: 'sent',
+            giftId: gift._id,
+            coinAmount: gift.coins,
+            coinName: gift.name,
+            date: now
+        };
+        const receiverHistory = {
+            userId: sender._id,
+            status: 'received',
+            giftId: gift._id,
+            coinAmount: gift.coins,
+            coinName: gift.name,
+            date: now
+        };
+        // Update both users atomically
+        await Promise.all([
+            User.findByIdAndUpdate(sender._id, {
+                $inc: { totalCoin: -gift.coins },
+                $push: { coinHistory: senderHistory }
+            }),
+            User.findByIdAndUpdate(receiver._id, {
+                $inc: { totalCoin: gift.coins },
+                $push: { coinHistory: receiverHistory }
+            })
+        ]);
+        return res.status(200).json({ success: true, message: 'Gift sent successfully.' });
+    } catch (error) {
+        console.error('[Send Gift API error]', error);
+        return res.status(500).json({ success: false, message: 'Internal server error.' });
+    }
+});
+
+/**
+ * Gift History API
+ * GET /gift-history
+ * - Returns the user's coinHistory (sent and received gifts)
+ */
+router.get('/gift-history', validateUser, async function (req, res) {
+    try {
+        const userId = req.authSession?.value.userId;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: 'Unauthorized.' });
+        }
+        const user = await User.findById(userId).select('coinHistory').lean();
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found.' });
+        }
+        const history = (user.coinHistory || []).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        return res.status(200).json({ success: true, data: history });
+    } catch (error) {
+        console.error('[Gift History API error]', error);
+        return res.status(500).json({ success: false, message: 'Internal server error.' });
     }
 });
 

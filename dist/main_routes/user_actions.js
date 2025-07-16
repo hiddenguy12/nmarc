@@ -1,5 +1,8 @@
 "use strict";
 /* بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ ﷺ InshaAllah */
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const zod_1 = require("zod");
@@ -9,6 +12,7 @@ const SendMailedProfile_1 = require("../models/SendMailedProfile");
 const user_1 = require("../models/user");
 const membershipRequest_1 = require("../models/membershipRequest");
 const ShortListedProfiles_1 = require("../models/ShortListedProfiles");
+const Gifts_1 = __importDefault(require("../models/Gifts"));
 const router = (0, express_1.Router)();
 router.post('/mail-history/:mailed_user_id', auth_middleware_1.validateUser, async function (req, res) {
     try {
@@ -197,6 +201,94 @@ router.get('/search-users', async function (req, res) {
             message: 'Internal server error',
             data: null
         });
+    }
+});
+/**
+ * Send Gift API
+ * POST /send-gift
+ * Body: { receiverId: string, giftId: string }
+ * - Decreases sender's totalCoin, increases receiver's totalCoin
+ * - Adds coinHistory entry for both users
+ */
+router.post('/send-gift', auth_middleware_1.validateUser, async function (req, res) {
+    try {
+        const senderId = req.authSession?.value.userId;
+        const { receiverId, giftId } = req.body;
+        if (!senderId || !receiverId || !giftId) {
+            return res.status(400).json({ success: false, message: 'Missing required fields.' });
+        }
+        if (senderId === receiverId) {
+            return res.status(400).json({ success: false, message: 'Cannot send gift to yourself.' });
+        }
+        // Fetch sender, receiver, and gift
+        const [sender, receiver, gift] = await Promise.all([
+            user_1.User.findById(senderId),
+            user_1.User.findById(receiverId),
+            Gifts_1.default.findById(giftId)
+        ]);
+        if (!sender || !receiver || !gift) {
+            return res.status(404).json({ success: false, message: 'Sender, receiver, or gift not found.' });
+        }
+        if (sender.totalCoin < gift.coins) {
+            return res.status(400).json({ success: false, message: 'Insufficient coins.' });
+        }
+        // Prepare coin history entries
+        const now = new Date();
+        const senderHistory = {
+            userId: receiver._id,
+            status: 'sent',
+            giftId: gift._id,
+            coinAmount: gift.coins,
+            coinName: gift.name,
+            date: now
+        };
+        const receiverHistory = {
+            userId: sender._id,
+            status: 'received',
+            giftId: gift._id,
+            coinAmount: gift.coins,
+            coinName: gift.name,
+            date: now
+        };
+        // Update both users atomically
+        await Promise.all([
+            user_1.User.findByIdAndUpdate(sender._id, {
+                $inc: { totalCoin: -gift.coins },
+                $push: { coinHistory: senderHistory }
+            }),
+            user_1.User.findByIdAndUpdate(receiver._id, {
+                $inc: { totalCoin: gift.coins },
+                $push: { coinHistory: receiverHistory }
+            })
+        ]);
+        return res.status(200).json({ success: true, message: 'Gift sent successfully.' });
+    }
+    catch (error) {
+        console.error('[Send Gift API error]', error);
+        return res.status(500).json({ success: false, message: 'Internal server error.' });
+    }
+});
+/**
+ * Gift History API
+ * GET /gift-history
+ * - Returns the user's coinHistory (sent and received gifts)
+ */
+router.get('/gift-history', auth_middleware_1.validateUser, async function (req, res) {
+    try {
+        const userId = req.authSession?.value.userId;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: 'Unauthorized.' });
+        }
+        const user = await user_1.User.findById(userId).select('coinHistory').lean();
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found.' });
+        }
+        const history = (user.coinHistory || []).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        return res.status(200).json({ success: true, data: history });
+    }
+    catch (error) {
+        console.error('[Gift History API error]', error);
+        return res.status(500).json({ success: false, message: 'Internal server error.' });
     }
 });
 exports.default = router;
