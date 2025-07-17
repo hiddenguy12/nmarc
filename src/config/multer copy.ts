@@ -19,13 +19,18 @@ const storage = multer.diskStorage({
     }
 });
 
-// Enable file type filtering for images and PDFs
+// File filter function
 const fileFilter = (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
-    if (ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
-        cb(null, true);
-    } else {
-        cb(new Error('Invalid file type. Only images (jpeg, png, jpg, webp) and PDFs are allowed.'));
+    if (!ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
+        cb(new Error('Invalid file type. Only JPEG, PNG, JPG, PDF, and WEBP files are allowed.'));
+        return;
     }
+
+    if (file.mimetype !== 'application/pdf' && file.size > 5 * 1024 * 1024) return cb(new Error('Image can noy be bigger than 5 MB'));
+   
+    if (file.mimetype === 'application/pdf' && file.size > 10 * 1024 * 1024) return cb(new Error('pdf can noy be bigger than 10 MB'));
+    
+    cb(null, true);
 };
 
 // Create multer upload instance
@@ -34,5 +39,5 @@ export const upload = multer({
     limits: {
         fileSize: MAX_FILE_SIZE
     },
-    // fileFilter: fileFilter
+    fileFilter: fileFilter
 });

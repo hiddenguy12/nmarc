@@ -521,6 +521,7 @@ router.post('/login', async function (req: Request, res: Response): Promise<Resp
 
 
         const authToken = giveAuthSession();
+        console.log(authToken)
 
         // Remove any previous auth session for the user
         await AuthSession.deleteOne({ 'value.email': existingUser.email });

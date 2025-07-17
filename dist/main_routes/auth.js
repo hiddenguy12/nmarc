@@ -471,6 +471,7 @@ router.post('/login', async function (req, res) {
             });
         }
         const authToken = (0, auth_controller_1.giveAuthSession)();
+        console.log(authToken);
         // Remove any previous auth session for the user
         await AuthSession_1.default.deleteOne({ 'value.email': existingUser.email });
         // Create a new auth session for the user
