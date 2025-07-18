@@ -89,7 +89,7 @@ export async function validateVideoProfile(req: Request | any , res: Response, n
         error: validationResult.error
       });
     }
-
+    
     let user :any= await VideoProfile.findOne({ 'auth.authSession' : token , "auth.session_exp_date" : { $gt : new Date()} }).select('-passwordDetails');
     if (user) {
       req.videoProfile =user;
