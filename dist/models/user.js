@@ -645,27 +645,6 @@ const userSchema = new mongoose_1.Schema({
         },
         suspensions: [suspensionEntrySchema],
     },
-    /**
-     * Coin System
-     * ----------------------
-     * totalCoin: User's current coin balance
-     * coinHistory: Array of coin transactions (sent/received gifts)
-     */
-    totalCoin: {
-        type: Number,
-        default: 0,
-        required: true,
-    },
-    coinHistory: [
-        {
-            userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
-            status: { type: String, enum: ['sent', 'received'], required: true },
-            giftId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Gift', required: true },
-            coinAmount: { type: Number, required: true },
-            coinName: { type: String, required: true },
-            date: { type: Date, default: Date.now, required: true },
-        }
-    ],
 });
 userSchema.methods.hasActiveMembership = function () {
     if (!this.currentMembership.requestId ||

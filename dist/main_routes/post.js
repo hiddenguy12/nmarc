@@ -22,13 +22,15 @@ const populateUserFields = [
  * @desc Create a new post (with optional image upload)
  * @access Authenticated users only
  */
-router.post('/', auth_middleware_1.validateUser, multer_1.upload.single('image'), async (req, res) => {
+router.post('/', auth_middleware_1.validateVideoProfile, multer_1.upload.single('image'), async (req, res) => {
     try {
         const { content, category } = req.body;
-        const userId = req.user?._id;
+        const userId = req.videoProfile?._id;
         if (!userId) {
+            // Error: User not authenticated
             return res.status(401).json({ success: false, message: 'Unauthorized' });
         }
+        console.log(userId);
         let image = undefined;
         if (req.file) {
             const result = await cloudinary_1.default.uploader.upload(req.file.path, {
@@ -53,10 +55,14 @@ router.post('/', auth_middleware_1.validateUser, multer_1.upload.single('image')
             image,
             youtubeMeta,
         });
+        // Add postId to VideoProfile.posts
+        const VideoProfile = require('../models/VideoProfile').default;
+        await VideoProfile.findByIdAndUpdate(userId, { $push: { posts: post._id } });
         await post.populate(populateUserFields);
         return res.status(201).json({ success: true, data: post });
     }
     catch (error) {
+        // Error: Failed to create post
         return res.status(500).json({ success: false, message: 'Failed to create post', error });
     }
 });
@@ -105,12 +111,12 @@ router.get('/:id', async (req, res) => {
  * @desc Update a post (only by owner)
  * @access Authenticated users only
  */
-router.put('/:id', auth_middleware_1.validateUser, multer_1.upload.single('image'), async (req, res) => {
+router.put('/:id', auth_middleware_1.validateVideoProfile, multer_1.upload.single('image'), async (req, res) => {
     try {
         const post = await post_1.Post.findById(req.params.id);
         if (!post)
             return res.status(404).json({ success: false, message: 'Post not found' });
-        const userId = req.user?._id;
+        const userId = req.videoProfile?._id;
         if (!userId || !post.userId || post.userId.toString() !== userId.toString()) {
             return res.status(403).json({ success: false, message: 'Unauthorized' });
         }
@@ -153,20 +159,27 @@ router.put('/:id', auth_middleware_1.validateUser, multer_1.upload.single('image
  * @desc Delete a post (only by owner)
  * @access Authenticated users only
  */
-router.delete('/:id', auth_middleware_1.validateUser, async (req, res) => {
+router.delete('/:id', auth_middleware_1.validateVideoProfile, async (req, res) => {
     try {
         const post = await post_1.Post.findById(req.params.id);
-        if (!post)
+        if (!post) {
+            // Error: Post not found
             return res.status(404).json({ success: false, message: 'Post not found' });
-        const userId = req.user?._id;
+        }
+        const userId = req.videoProfile?._id;
         if (!userId || !post.userId || post.userId.toString() !== userId.toString()) {
+            // Error: Unauthorized delete attempt
             return res.status(403).json({ success: false, message: 'Unauthorized' });
         }
         post.isDeleted = true;
         await post.save();
+        // Remove postId from VideoProfile.posts
+        const VideoProfile = require('../models/VideoProfile').default;
+        await VideoProfile.findByIdAndUpdate(userId, { $pull: { posts: post._id } });
         return res.json({ success: true, message: 'Post deleted' });
     }
     catch (error) {
+        // Error: Failed to delete post
         return res.status(500).json({ success: false, message: 'Failed to delete post', error });
     }
 });
@@ -175,12 +188,12 @@ router.delete('/:id', auth_middleware_1.validateUser, async (req, res) => {
  * @desc Like or unlike a post
  * @access Authenticated users only
  */
-router.post('/:id/like', auth_middleware_1.validateUser, async (req, res) => {
+router.post('/:id/like', auth_middleware_1.validateVideoProfile, async (req, res) => {
     try {
         const post = await post_1.Post.findById(req.params.id);
         if (!post)
             return res.status(404).json({ success: false, message: 'Post not found' });
-        const userId = req.user?._id;
+        const userId = req.videoProfile?._id;
         if (!userId) {
             return res.status(401).json({ success: false, message: 'Unauthorized' });
         }
@@ -213,12 +226,12 @@ router.post('/:id/like', auth_middleware_1.validateUser, async (req, res) => {
  * @desc Add a comment to a post
  * @access Authenticated users only
  */
-router.post('/:id/comment', auth_middleware_1.validateUser, async (req, res) => {
+router.post('/:id/comment', auth_middleware_1.validateVideoProfile, async (req, res) => {
     try {
         const { content } = req.body;
         if (!content)
             return res.status(400).json({ success: false, message: 'Content is required' });
-        const userId = req.user?._id;
+        const userId = req.videoProfile?._id;
         if (!userId) {
             return res.status(401).json({ success: false, message: 'Unauthorized' });
         }
@@ -249,12 +262,12 @@ router.post('/:id/comment', auth_middleware_1.validateUser, async (req, res) => 
  * @desc Add a reply to a comment
  * @access Authenticated users only
  */
-router.post('/:postId/comment/:commentId/reply', auth_middleware_1.validateUser, async (req, res) => {
+router.post('/:postId/comment/:commentId/reply', auth_middleware_1.validateVideoProfile, async (req, res) => {
     try {
         const { content } = req.body;
         if (!content)
             return res.status(400).json({ success: false, message: 'Content is required' });
-        const userId = req.user?._id;
+        const userId = req.videoProfile?._id;
         if (!userId) {
             return res.status(401).json({ success: false, message: 'Unauthorized' });
         }

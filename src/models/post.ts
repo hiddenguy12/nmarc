@@ -2,7 +2,7 @@ import mongoose, { Schema, Types } from 'mongoose';
 
 // Comment Reply Schema
 const replySchema = new Schema({
-  userId: { type: Types.ObjectId, ref: 'User', required: true },
+  userId: { type: Types.ObjectId, ref: 'VideoProfile', required: true },
   content: { type: String, required: true, trim: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
@@ -10,7 +10,7 @@ const replySchema = new Schema({
 
 // Comment Schema
 const commentSchema = new Schema({
-  userId: { type: Types.ObjectId, ref: 'User', required: true },
+  userId: { type: Types.ObjectId, ref: 'VideoProfile', required: true },
   content: { type: String, required: true, trim: true },
   replies: [replySchema],
   createdAt: { type: Date, default: Date.now },
@@ -19,7 +19,7 @@ const commentSchema = new Schema({
 
 // Post Schema
 const postSchema = new Schema({
-  userId: { type: Types.ObjectId, ref: 'User', required: true, index: true },
+  userId: { type: Types.ObjectId, ref: 'VideoProfile', required: true, index: true },
   content: { type: String, required: true, trim: true },
   category: { type: String, trim: true, default: 'general' },
   image: {
@@ -37,7 +37,7 @@ const postSchema = new Schema({
     channelTitle: { type: String },
     publishedAt: { type: Date },
   },
-  likesIDs: [{ type: Types.ObjectId, ref: 'User' }],
+  likesIDs: [{ type: Types.ObjectId, ref: 'VideoProfile' }],
   likesCount: { type: Number, default: 0 },
   comments: [commentSchema],
   commentsCount: { type: Number, default: 0 },

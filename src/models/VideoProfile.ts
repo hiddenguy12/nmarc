@@ -42,7 +42,17 @@ export interface IVideoProfile extends Document {
         messaging_socket : string ;
         video_calling_socket : string;
         random_video_calling_socket : string ;
-    }
+    },
+    posts: mongoose.Types.ObjectId[]; // Array of post IDs created by the user
+    totalCoin: number; // User's current coin balance
+    coinHistory: Array<{
+        userId: mongoose.Types.ObjectId;
+        status: 'sent' | 'received';
+        giftId: mongoose.Types.ObjectId;
+        coinAmount: number;
+        coinName: string;
+        date: Date;
+    }>;
 }
 
 
@@ -150,7 +160,28 @@ const videoProfileSchema = new Schema<IVideoProfile>(
             messaging_socket: String ,
             video_calling_socket : String,
             random_video_calling_socket : String 
-        } 
+        },
+        // User's posts
+        posts: [{
+            type: mongoose.SchemaTypes.ObjectId,
+            ref: 'Post',
+        }],
+        // Coin system
+        totalCoin: {
+            type: Number,
+            default: 0,
+            required: true,
+        },
+        coinHistory: [
+            {
+                userId: { type: mongoose.SchemaTypes.ObjectId, ref: 'VideoProfile', required: true },
+                status: { type: String, enum: ['sent', 'received'], required: true },
+                giftId: { type: mongoose.SchemaTypes.ObjectId, ref: 'Gift', required: true },
+                coinAmount: { type: Number, required: true },
+                coinName: { type: String, required: true },
+                date: { type: Date, default: Date.now, required: true },
+            }
+        ],
 
     },
     { timestamps: true }

@@ -74,7 +74,6 @@ export async function validateVideoProfile(req: Request | any , res: Response, n
   try {
     const authHeader = req.headers.authorization;
     const token = extractBearerToken(authHeader);
-    console.log(token)
     if (!token) {
       return res.status(401).json({
         success: false,
@@ -83,7 +82,6 @@ export async function validateVideoProfile(req: Request | any , res: Response, n
     }
 
     let validationResult = await authSessionValidation.safeParseAsync(token);
-
     if (!validationResult.success) {
       return res.status(401).json({
         success: false,
@@ -93,7 +91,6 @@ export async function validateVideoProfile(req: Request | any , res: Response, n
     }
 
     let user :any= await VideoProfile.findOne({ 'auth.authSession' : token , "auth.session_exp_date" : { $gt : new Date()} }).select('-passwordDetails');
-    console.log(user)
     if (user) {
       req.videoProfile =user;
       next();

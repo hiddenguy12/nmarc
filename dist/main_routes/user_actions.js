@@ -13,6 +13,7 @@ const user_1 = require("../models/user");
 const membershipRequest_1 = require("../models/membershipRequest");
 const ShortListedProfiles_1 = require("../models/ShortListedProfiles");
 const Gifts_1 = __importDefault(require("../models/Gifts"));
+const VideoProfile_1 = __importDefault(require("../models/VideoProfile"));
 const router = (0, express_1.Router)();
 router.post('/mail-history/:mailed_user_id', auth_middleware_1.validateUser, async function (req, res) {
     try {
@@ -210,26 +211,30 @@ router.get('/search-users', async function (req, res) {
  * - Decreases sender's totalCoin, increases receiver's totalCoin
  * - Adds coinHistory entry for both users
  */
-router.post('/send-gift', auth_middleware_1.validateUser, async function (req, res) {
+router.post('/send-gift', auth_middleware_1.validateVideoProfile, async function (req, res) {
     try {
-        const senderId = req.authSession?.value.userId;
+        const senderId = req.videoProfile?._id;
         const { receiverId, giftId } = req.body;
         if (!senderId || !receiverId || !giftId) {
+            // Error: Missing required fields
             return res.status(400).json({ success: false, message: 'Missing required fields.' });
         }
-        if (senderId === receiverId) {
+        if (senderId.toString() === receiverId.toString()) {
+            // Error: Cannot send gift to yourself
             return res.status(400).json({ success: false, message: 'Cannot send gift to yourself.' });
         }
-        // Fetch sender, receiver, and gift
+        // Fetch sender, receiver, and gift from VideoProfile and Gifts
         const [sender, receiver, gift] = await Promise.all([
-            user_1.User.findById(senderId),
-            user_1.User.findById(receiverId),
+            VideoProfile_1.default.findById(senderId),
+            VideoProfile_1.default.findById(receiverId),
             Gifts_1.default.findById(giftId)
         ]);
         if (!sender || !receiver || !gift) {
+            // Error: Sender, receiver, or gift not found
             return res.status(404).json({ success: false, message: 'Sender, receiver, or gift not found.' });
         }
         if (sender.totalCoin < gift.coins) {
+            // Error: Insufficient coins
             return res.status(400).json({ success: false, message: 'Insufficient coins.' });
         }
         // Prepare coin history entries
@@ -250,13 +255,13 @@ router.post('/send-gift', auth_middleware_1.validateUser, async function (req, r
             coinName: gift.name,
             date: now
         };
-        // Update both users atomically
+        // Update both VideoProfiles atomically
         await Promise.all([
-            user_1.User.findByIdAndUpdate(sender._id, {
+            VideoProfile_1.default.findByIdAndUpdate(sender._id, {
                 $inc: { totalCoin: -gift.coins },
                 $push: { coinHistory: senderHistory }
             }),
-            user_1.User.findByIdAndUpdate(receiver._id, {
+            VideoProfile_1.default.findByIdAndUpdate(receiver._id, {
                 $inc: { totalCoin: gift.coins },
                 $push: { coinHistory: receiverHistory }
             })
@@ -264,6 +269,7 @@ router.post('/send-gift', auth_middleware_1.validateUser, async function (req, r
         return res.status(200).json({ success: true, message: 'Gift sent successfully.' });
     }
     catch (error) {
+        // Error: Failed to send gift
         console.error('[Send Gift API error]', error);
         return res.status(500).json({ success: false, message: 'Internal server error.' });
     }
@@ -273,20 +279,23 @@ router.post('/send-gift', auth_middleware_1.validateUser, async function (req, r
  * GET /gift-history
  * - Returns the user's coinHistory (sent and received gifts)
  */
-router.get('/gift-history', auth_middleware_1.validateUser, async function (req, res) {
+router.get('/gift-history', auth_middleware_1.validateVideoProfile, async function (req, res) {
     try {
-        const userId = req.authSession?.value.userId;
+        const userId = req.videoProfile?._id;
         if (!userId) {
+            // Error: Unauthorized (no video profile)
             return res.status(401).json({ success: false, message: 'Unauthorized.' });
         }
-        const user = await user_1.User.findById(userId).select('coinHistory').lean();
-        if (!user) {
+        const videoProfile = await VideoProfile_1.default.findById(userId).select('coinHistory').lean();
+        if (!videoProfile) {
+            // Error: VideoProfile not found
             return res.status(404).json({ success: false, message: 'User not found.' });
         }
-        const history = (user.coinHistory || []).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        const history = (videoProfile.coinHistory || []).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         return res.status(200).json({ success: true, data: history });
     }
     catch (error) {
+        // Error: Failed to fetch gift history
         console.error('[Gift History API error]', error);
         return res.status(500).json({ success: false, message: 'Internal server error.' });
     }

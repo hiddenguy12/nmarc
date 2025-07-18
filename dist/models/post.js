@@ -37,14 +37,14 @@ exports.Post = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 // Comment Reply Schema
 const replySchema = new mongoose_1.Schema({
-    userId: { type: mongoose_1.Types.ObjectId, ref: 'User', required: true },
+    userId: { type: mongoose_1.Types.ObjectId, ref: 'VideoProfile', required: true },
     content: { type: String, required: true, trim: true },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
 }, { _id: true });
 // Comment Schema
 const commentSchema = new mongoose_1.Schema({
-    userId: { type: mongoose_1.Types.ObjectId, ref: 'User', required: true },
+    userId: { type: mongoose_1.Types.ObjectId, ref: 'VideoProfile', required: true },
     content: { type: String, required: true, trim: true },
     replies: [replySchema],
     createdAt: { type: Date, default: Date.now },
@@ -52,7 +52,7 @@ const commentSchema = new mongoose_1.Schema({
 }, { _id: true });
 // Post Schema
 const postSchema = new mongoose_1.Schema({
-    userId: { type: mongoose_1.Types.ObjectId, ref: 'User', required: true, index: true },
+    userId: { type: mongoose_1.Types.ObjectId, ref: 'VideoProfile', required: true, index: true },
     content: { type: String, required: true, trim: true },
     category: { type: String, trim: true, default: 'general' },
     image: {
@@ -70,7 +70,7 @@ const postSchema = new mongoose_1.Schema({
         channelTitle: { type: String },
         publishedAt: { type: Date },
     },
-    likesIDs: [{ type: mongoose_1.Types.ObjectId, ref: 'User' }],
+    likesIDs: [{ type: mongoose_1.Types.ObjectId, ref: 'VideoProfile' }],
     likesCount: { type: Number, default: 0 },
     comments: [commentSchema],
     commentsCount: { type: Number, default: 0 },
