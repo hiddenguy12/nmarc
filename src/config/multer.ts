@@ -6,7 +6,7 @@ import type { Request } from 'express';
 
 // Allowed file types
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp' , 'application/pdf'];
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+// const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 // Configure multer storage
 const storage = multer.diskStorage({
@@ -31,8 +31,9 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: FileFilterCallb
 // Create multer upload instance
 export const upload = multer({
     storage: storage,
-    limits: {
-        fileSize: MAX_FILE_SIZE
-    },
+    // No file size limit for unlimited upload
+    // limits: {
+    //     fileSize: MAX_FILE_SIZE
+    // },
     // fileFilter: fileFilter
 });

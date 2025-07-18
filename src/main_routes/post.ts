@@ -33,7 +33,6 @@ router.post('/', validateUser, upload.single('image'), async (req: Request, res:
       const result = await cloudinary.uploader.upload(req.file.path, {
         unique_filename: true,
         resource_type: 'image',
-        transformation: ['media_lib_thumb'],
       });
       image = {
         url: result.url,
@@ -117,7 +116,6 @@ router.put('/:id', validateUser, upload.single('image'), async (req: Request, re
       const result = await cloudinary.uploader.upload(req.file.path, {
         unique_filename: true,
         resource_type: 'image',
-        transformation: ['media_lib_thumb'],
       });
       post.image = {
         url: result.url,
