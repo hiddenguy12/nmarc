@@ -34,7 +34,6 @@ router.post('/', auth_middleware_1.validateUser, multer_1.upload.single('image')
             const result = await cloudinary_1.default.uploader.upload(req.file.path, {
                 unique_filename: true,
                 resource_type: 'image',
-                transformation: ['media_lib_thumb'],
             });
             image = {
                 url: result.url,
@@ -124,7 +123,6 @@ router.put('/:id', auth_middleware_1.validateUser, multer_1.upload.single('image
             const result = await cloudinary_1.default.uploader.upload(req.file.path, {
                 unique_filename: true,
                 resource_type: 'image',
-                transformation: ['media_lib_thumb'],
             });
             post.image = {
                 url: result.url,

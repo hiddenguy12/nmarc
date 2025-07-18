@@ -9,7 +9,7 @@ const multer_1 = __importDefault(require("multer"));
 const path_1 = __importDefault(require("path"));
 // Allowed file types
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'application/pdf'];
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+// const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 // Configure multer storage
 const storage = multer_1.default.diskStorage({
     destination: function (req, file, cb) {
@@ -32,8 +32,9 @@ const fileFilter = (req, file, cb) => {
 // Create multer upload instance
 exports.upload = (0, multer_1.default)({
     storage: storage,
-    limits: {
-        fileSize: MAX_FILE_SIZE
-    },
+    // No file size limit for unlimited upload
+    // limits: {
+    //     fileSize: MAX_FILE_SIZE
+    // },
     // fileFilter: fileFilter
 });
