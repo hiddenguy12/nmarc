@@ -28,7 +28,7 @@ router.post('/buy-coins/paypal', auth_middleware_1.validateVideoProfile, async f
             client_secret: env_1.PAYPAL_CLIENT_SECRET,
             success_url: env_1.BASE_URL + '/api/coins/payment-success/paypal',
             cancel_url: env_1.BASE_URL + '/api/coins/payment-cancel/paypal',
-            brand_name: 'FriendsBook'
+            brand_name: 'NMRCA'
         });
         let pAccessToken = await paypal.getAccessToken();
         let paymentInfo = await paypal.createPayment({
@@ -163,7 +163,7 @@ router.get('/payment-success/paypal', async function (req, res) {
             client_secret: env_1.PAYPAL_CLIENT_SECRET,
             success_url: env_1.BASE_URL + '/api/coins/payment-success/paypal',
             cancel_url: env_1.BASE_URL + '/api/coins/payment-cancel/paypal',
-            brand_name: 'FriendsBook'
+            brand_name: 'NMRCA'
         });
         // Verify the payment with PayPal
         const accessToken = await paypal.getAccessToken();

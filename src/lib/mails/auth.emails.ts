@@ -42,7 +42,7 @@ async function registrationOtpEmail(otp: number, email: string): Promise<boolean
         const content = `
         <div style="background-color: ${EMAIL_BACKGROUND_COLOR}; padding: 20px;">
             <h2 style="color: ${EMAIL_PRIMARY_COLOR};">Email Verification</h2>
-            <p>This is your registration OTP from <strong>FriendsBook</strong> app. Please use the following code to verify your email and complete your registration:</p>
+            <p>This is your registration OTP from <strong>NMRCA</strong> app. Please use the following code to verify your email and complete your registration:</p>
             <div style="background-color: ${EMAIL_PRIMARY_COLOR}; color: white; padding: 15px; text-align: center; margin: 20px 0; border-radius: 8px;">
                 <h1 style="margin: 0;">${otp}</h1>
             </div>
@@ -52,13 +52,13 @@ async function registrationOtpEmail(otp: number, email: string): Promise<boolean
         const info = await transporter.sendMail({
             from: COMPANY_MAIL,
             to: email,
-            subject: `Registration OTP - FriendsBook`,
+            subject: `Registration OTP - NMRCA`,
             html: generateEmailTemplate(content),
         });
         console.log(`[Email Success] Registration OTP sent to: ${email} | Message ID: ${info.messageId}`);
         return true;
     } catch (error) {
-        console.error(`[Email Error] Failed to send Registration OTP to: ${email} | Subject: Registration OTP - FriendsBook | Error:`, error);
+        console.error(`[Email Error] Failed to send Registration OTP to: ${email} | Subject: Registration OTP - NMRCA | Error:`, error);
         return false;
     }
 }
@@ -69,22 +69,22 @@ async function registrationSuccessEmail(email: string): Promise<boolean> {
     try {
         const content = `
         <div style="background-color: ${EMAIL_BACKGROUND_COLOR}; padding: 20px;">
-            <h2 style="color: ${EMAIL_PRIMARY_COLOR};">Welcome to FriendsBook!</h2>
+            <h2 style="color: ${EMAIL_PRIMARY_COLOR};">Welcome to NMRCA!</h2>
             <p>Your registration was successful. We're excited to have you on board.</p>
-            <p>You can now log in to the <strong>FriendsBook</strong> app and start exploring!</p>
+            <p>You can now log in to the <strong>NMRCA</strong> app and start exploring!</p>
             <p>If you have any questions or need help, feel free to contact our support team.</p>
         </div>
         `;
         const info = await transporter.sendMail({
             from: COMPANY_MAIL,
             to: email,
-            subject: `Registration Successful - FriendsBook`,
+            subject: `Registration Successful - NMRCA`,
             html: generateEmailTemplate(content),
         });
         console.log(`[Email Success] Registration Success sent to: ${email} | Message ID: ${info.messageId}`);
         return true;
     } catch (error) {
-        console.error(`[Email Error] Failed to send Registration Success to: ${email} | Subject: Registration Successful - FriendsBook | Error:`, error);
+        console.error(`[Email Error] Failed to send Registration Success to: ${email} | Subject: Registration Successful - NMRCA | Error:`, error);
         return false;
     }
 }
@@ -96,7 +96,7 @@ async function forgotPasswordOtpEmail(otp: number, email: string): Promise<boole
         const content = `
         <div style="background-color: ${EMAIL_BACKGROUND_COLOR}; padding: 20px;">
             <h2 style="color: ${EMAIL_PRIMARY_COLOR};">Password Reset</h2>
-            <p>You requested to reset your password for <strong>FriendsBook</strong> app. Use the following OTP to proceed:</p>
+            <p>You requested to reset your password for <strong>NMRCA</strong> app. Use the following OTP to proceed:</p>
             <div style="background-color: ${EMAIL_PRIMARY_COLOR}; color: white; padding: 15px; text-align: center; margin: 20px 0; border-radius: 8px;">
                 <h1 style="margin: 0;">${otp}</h1>
             </div>
@@ -106,13 +106,13 @@ async function forgotPasswordOtpEmail(otp: number, email: string): Promise<boole
         const info = await transporter.sendMail({
             from: COMPANY_MAIL,
             to: email,
-            subject: `Password Reset - FriendsBook`,
+            subject: `Password Reset - NMRCA`,
             html: generateEmailTemplate(content),
         });
         console.log(`[Email Success] Forgot Password OTP sent to: ${email} | Message ID: ${info.messageId}`);
         return true;
     } catch (error) {
-        console.error(`[Email Error] Failed to send Forgot Password OTP to: ${email} | Subject: Password Reset - FriendsBook | Error:`, error);
+        console.error(`[Email Error] Failed to send Forgot Password OTP to: ${email} | Subject: Password Reset - NMRCA | Error:`, error);
         return false;
     }
 }
