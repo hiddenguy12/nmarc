@@ -158,7 +158,7 @@ const videoProfileSchema = new mongoose_1.Schema({
         }
     ],
 }, { timestamps: true });
-videoProfileSchema.index({ "auth.isLoggedIn": 1 }, { unique: true });
+// videoProfileSchema.index({ "auth.isLoggedIn" : 1} , {unique : true });
 videoProfileSchema.index({ "auth.authSession": 1 });
 videoProfileSchema.index({ "location.country": 1 });
 videoProfileSchema.index({ "location.lat": 1 });
